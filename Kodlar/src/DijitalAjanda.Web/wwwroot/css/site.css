@@ -1,0 +1,214 @@
+/* ---------- Yazı tipi (Inter, projeye gömülü) ---------- */
+@font-face { font-family: "Inter"; font-weight: 400; font-display: swap; src: url("../lib/inter/inter-latin-ext-400-normal.woff2") format("woff2"); unicode-range: U+0100-024F, U+1E00-1EFF; }
+@font-face { font-family: "Inter"; font-weight: 400; font-display: swap; src: url("../lib/inter/inter-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+20AC; }
+@font-face { font-family: "Inter"; font-weight: 500; font-display: swap; src: url("../lib/inter/inter-latin-ext-500-normal.woff2") format("woff2"); unicode-range: U+0100-024F, U+1E00-1EFF; }
+@font-face { font-family: "Inter"; font-weight: 500; font-display: swap; src: url("../lib/inter/inter-latin-500-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+20AC; }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: swap; src: url("../lib/inter/inter-latin-ext-600-normal.woff2") format("woff2"); unicode-range: U+0100-024F, U+1E00-1EFF; }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: swap; src: url("../lib/inter/inter-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+20AC; }
+@font-face { font-family: "Inter"; font-weight: 700; font-display: swap; src: url("../lib/inter/inter-latin-ext-700-normal.woff2") format("woff2"); unicode-range: U+0100-024F, U+1E00-1EFF; }
+@font-face { font-family: "Inter"; font-weight: 700; font-display: swap; src: url("../lib/inter/inter-latin-700-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+20AC; }
+
+/* ---------- Renk değişkenleri ---------- */
+:root,
+[data-bs-theme="light"] {
+    --ana: #1f3864;
+    --ana-acik: #2e4a7d;
+    --ana-zemin: #e3e9f4;
+    --zemin: #faf7f0;
+    --yuzey: #ffffff;
+    --cizgi: #ebe5d8;
+    --yazi: #1d2433;
+    --yazi-soluk: #6a7385;
+
+    --renk-is: #cddff2;
+    --renk-saglik: #d4e8d4;
+    --renk-kisisel: #f4e5b8;
+    --renk-sosyal: #e0d6f0;
+    --renk-acil: #f3c9c9;
+    --renk-ev: #f1ece2;
+    --renk-turuncu: #f8d8c2;
+
+    --bs-body-bg: var(--zemin);
+    --bs-body-color: var(--yazi);
+    --bs-body-font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --bs-border-color: var(--cizgi);
+}
+
+[data-bs-theme="dark"] {
+    --ana: #a9c1ea;
+    --ana-acik: #c4d5f2;
+    --ana-zemin: #26334d;
+    --zemin: #15181f;
+    --yuzey: #1e222b;
+    --cizgi: #2e3440;
+    --yazi: #e6e9ef;
+    --yazi-soluk: #9aa3b5;
+
+    --renk-is: #24364f;
+    --renk-saglik: #233a2c;
+    --renk-kisisel: #3d3520;
+    --renk-sosyal: #322a45;
+    --renk-acil: #452626;
+    --renk-ev: #2b2925;
+    --renk-turuncu: #43301f;
+
+    --bs-body-bg: var(--zemin);
+    --bs-body-color: var(--yazi);
+    --bs-border-color: var(--cizgi);
+}
+
+html { font-size: 15px; }
+@media (min-width: 768px) { html { font-size: 16px; } }
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--zemin);
+    color: var(--yazi);
+}
+
+.ana-icerik { flex: 1; }
+
+a { color: var(--ana-acik); }
+
+.renk-is { background: var(--renk-is); }
+.renk-saglik { background: var(--renk-saglik); }
+.renk-kisisel { background: var(--renk-kisisel); }
+.renk-sosyal { background: var(--renk-sosyal); }
+.renk-acil { background: var(--renk-acil); }
+.renk-ev { background: var(--renk-ev); }
+.renk-turuncu { background: var(--renk-turuncu); }
+
+/* ---------- Butonlar ---------- */
+.btn { border-radius: 10px; font-weight: 600; }
+.btn-ana { background: var(--ana); color: var(--zemin); border: 1px solid var(--ana); }
+.btn-ana:hover, .btn-ana:focus { background: var(--ana-acik); color: var(--zemin); border-color: var(--ana-acik); }
+.btn-cizgili { background: transparent; color: var(--ana); border: 1px solid var(--cizgi); }
+.btn-cizgili:hover, .btn-cizgili:focus { background: var(--ana-zemin); color: var(--ana); border-color: var(--ana-zemin); }
+.btn-ikon {
+    width: 40px; height: 40px; padding: 0; border-radius: 50%;
+    display: inline-grid; place-items: center;
+    border: 1px solid var(--cizgi); color: var(--yazi); background: var(--yuzey);
+}
+.btn-ikon:hover { background: var(--ana-zemin); }
+
+/* ---------- Üst menü ---------- */
+.ust-menu {
+    background: var(--yuzey);
+    border-bottom: 1px solid var(--cizgi);
+    position: sticky; top: 0; z-index: 1030;
+}
+.ust-menu .navbar { padding: .75rem 0; }
+
+.logo { display: inline-flex; align-items: center; gap: .65rem; text-decoration: none; }
+.logo-ikon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: var(--ana); color: var(--zemin); font-size: 1.2rem;
+}
+.logo-yazi { display: flex; flex-direction: column; line-height: 1.15; }
+.logo-yazi strong { color: var(--ana); font-size: 1.1rem; }
+.logo-yazi small { color: var(--yazi-soluk); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
+
+.ust-menu .nav-link {
+    color: var(--yazi); font-weight: 500;
+    padding: .5rem 1rem !important; border-radius: 10px;
+}
+.ust-menu .nav-link:hover { color: var(--ana); }
+.ust-menu .nav-link.active { background: var(--ana-zemin); color: var(--ana); font-weight: 600; }
+
+.navbar-toggler { border: 1px solid var(--cizgi); color: var(--yazi); font-size: 1.4rem; padding: .25rem .6rem; }
+.navbar-toggler:focus { box-shadow: none; }
+
+@media (max-width: 991.98px) {
+    .ust-menu .navbar-nav { padding: 1rem 0 .5rem; }
+    .sag-menu { padding-bottom: .5rem; flex-wrap: wrap; }
+}
+
+/* ---------- Ortak başlıklar ---------- */
+.etiket {
+    display: inline-block; padding: .3rem .75rem; border-radius: 999px;
+    background: var(--ana-zemin); color: var(--ana); font-size: .8rem; font-weight: 600;
+}
+.sayfa-baslik { font-weight: 700; color: var(--ana); font-size: 2rem; }
+.bolum-baslik { font-weight: 700; color: var(--ana); font-size: 1.75rem; }
+.kucuk-baslik { color: var(--yazi-soluk); letter-spacing: .06em; font-weight: 700; }
+
+/* ---------- Ana sayfa: giriş bölümü ---------- */
+.giris-bolumu { padding: 3.5rem 0 2.5rem; }
+.giris-baslik { font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 700; line-height: 1.15; color: var(--ana); letter-spacing: -.02em; }
+.giris-metin { font-size: 1.1rem; color: var(--yazi-soluk); margin-top: 1rem; max-width: 34rem; }
+
+.onizleme-kart {
+    background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 18px;
+    padding: 1.25rem; box-shadow: 0 18px 40px rgba(31, 56, 100, .08);
+}
+.onizleme-ust { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; font-size: .9rem; }
+.onizleme-ust strong { color: var(--ana); font-size: 1rem; }
+
+.hafta-izgara { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; min-height: 260px; }
+.gun-sutun { border-right: 1px dashed var(--cizgi); padding-right: .5rem; }
+.gun-sutun:last-child { border-right: none; padding-right: 0; }
+.gun-sutun.bugun { background: color-mix(in srgb, var(--renk-kisisel) 35%, transparent); border-radius: 10px; padding: 0 .35rem; }
+.gun-baslik {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid var(--yazi); padding-bottom: .35rem; margin-bottom: .5rem;
+    font-size: .68rem; color: var(--yazi-soluk); font-weight: 600;
+}
+.gun-baslik strong { color: var(--yazi); font-size: .95rem; }
+.bugun .gun-baslik strong { color: var(--ana); }
+.plan-oge { border-radius: 8px; padding: .4rem .45rem; margin-bottom: .4rem; font-size: .72rem; line-height: 1.25; }
+.plan-oge span { display: block; font-weight: 500; }
+.plan-oge small { color: var(--yazi-soluk); font-size: .65rem; }
+
+@media (max-width: 575.98px) {
+    .hafta-izgara { grid-template-columns: repeat(7, 120px); overflow-x: auto; padding-bottom: .5rem; }
+}
+
+/* ---------- Ana sayfa: özellik kartları ---------- */
+.ozellik-kart {
+    background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 16px; padding: 1.5rem;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.ozellik-kart:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(31, 56, 100, .08); }
+.ozellik-kart h3 { font-size: 1.05rem; font-weight: 700; margin: 1rem 0 .5rem; color: var(--yazi); }
+.ozellik-kart p { color: var(--yazi-soluk); font-size: .92rem; margin: 0; }
+.ozellik-ikon { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; font-size: 1.35rem; color: var(--yazi); }
+
+.adim-bandi { background: var(--ana-zemin); border-radius: 18px; padding: 2rem; }
+.adim-bandi h3 { font-size: 1.05rem; font-weight: 700; color: var(--ana); margin: .75rem 0 .35rem; }
+.adim-bandi p { margin: 0; color: var(--yazi-soluk); font-size: .92rem; }
+.adim-no {
+    width: 34px; height: 34px; border-radius: 50%; display: inline-grid; place-items: center;
+    background: var(--ana); color: var(--zemin); font-weight: 700;
+}
+
+/* ---------- Yakında sayfası ---------- */
+.yakinda-kart {
+    max-width: 620px; background: var(--yuzey); border: 1px solid var(--cizgi);
+    border-radius: 20px; padding: 2.5rem;
+}
+.yakinda-ikon {
+    width: 60px; height: 60px; border-radius: 16px; display: grid; place-items: center;
+    background: var(--ana-zemin); color: var(--ana); font-size: 1.6rem; margin-bottom: 1rem;
+}
+.ozellik-listesi { list-style: none; padding: 0; margin: 0; }
+.ozellik-listesi li { display: flex; gap: .6rem; padding: .55rem 0; border-bottom: 1px dashed var(--cizgi); }
+.ozellik-listesi li:last-child { border-bottom: none; }
+.ozellik-listesi i { color: var(--ana-acik); }
+
+@media (max-width: 575.98px) { .yakinda-kart { padding: 1.5rem; } }
+
+/* ---------- Metin sayfaları ---------- */
+.metin-sayfa { max-width: 760px; }
+.metin-sayfa h2 { font-size: 1.15rem; font-weight: 700; color: var(--ana); margin-top: 2rem; }
+
+/* ---------- Alt bilgi ---------- */
+.alt-bilgi { background: var(--yuzey); border-top: 1px solid var(--cizgi); padding: 3rem 0 1.5rem; margin-top: 2rem; }
+.alt-bilgi h6 { font-weight: 700; color: var(--ana); margin-bottom: .9rem; }
+.alt-bilgi li { margin-bottom: .45rem; }
+.alt-bilgi a:not(.logo) { color: var(--yazi-soluk); text-decoration: none; font-size: .92rem; }
+.alt-bilgi a:not(.logo):hover { color: var(--ana); }
+.alt-bilgi-metin { color: var(--yazi-soluk); font-size: .92rem; max-width: 22rem; }
+.alt-bilgi-son { border-top: 1px solid var(--cizgi); margin-top: 2rem; padding-top: 1.25rem; color: var(--yazi-soluk); font-size: .85rem; text-align: center; }
