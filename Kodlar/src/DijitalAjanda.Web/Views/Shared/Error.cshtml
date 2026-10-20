@@ -1,0 +1,17 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Hata";
+}
+
+<section class="container py-5">
+    <div class="yakinda-kart mx-auto text-center">
+        <div class="yakinda-ikon mx-auto"><i class="bi bi-exclamation-triangle"></i></div>
+        <h1 class="sayfa-baslik">Bir hata oluştu</h1>
+        <p class="text-secondary">İsteğin işlenirken beklenmeyen bir sorun çıktı. Lütfen daha sonra tekrar dene.</p>
+        @if (Model.ShowRequestId)
+        {
+            <p class="small text-secondary">İstek kimliği: <code>@Model.RequestId</code></p>
+        }
+        <a class="btn btn-ana mt-2" asp-controller="Home" asp-action="Index">Ana sayfaya dön</a>
+    </div>
+</section>
