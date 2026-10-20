@@ -9,17 +9,17 @@ Notion benzeri sayfa/blok yapısıyla birleştirir.
 
 ## Ekip
 
-| Ad Soyad | Öğrenci No | GitHub | Lider olduğu haftalar |
-|---|---|---|---|
-| Yağmur Kalyoncu | 23291413 | [@Yagmurkalyoncu](https://github.com/Yagmurkalyoncu) | 1, 2, 3 |
-| Muhammet Şahin | 23291284 | [@muhammetsah1n](https://github.com/muhammetsah1n) | 4, 5, 6 |
-| Şahnur Çöğür | 23291625 | [@sahnurcgr](https://github.com/sahnurcgr) | 7, 8, 9 |
+| Ad Soyad | Öğrenci No | GitHub | 
+|---|---|---|
+| Yağmur Kalyoncu | 23291413 | [@Yagmurkalyoncu](https://github.com/Yagmurkalyoncu) |
+| Muhammet Şahin | 23291284 | [@muhammetsah1n](https://github.com/muhammetsah1n) |
+| Şahnur Çöğür | 23291625 | [@sahnurcgr](https://github.com/sahnurcgr) |
 
 ## Kullanılan Teknolojiler
 
 - **ASP.NET Core MVC** (.NET 10)
-- **PostgreSQL** + **Entity Framework Core** (Code-First, migration) – *2. haftada eklenecek*
-- **ASP.NET Core Identity** (giriş, kayıt, Admin / Kullanıcı rolleri) – *2. haftada eklenecek*
+- **PostgreSQL** + **Entity Framework Core** (Code-First, migration) 
+- **ASP.NET Core Identity** (giriş, kayıt, Admin / Kullanıcı rolleri) 
 - **Bootstrap 5.3**, **Bootstrap Icons**, **Inter** yazı tipi (hepsi `wwwroot/lib` altında, internet gerektirmez)
 
 ## Projeyi Çalıştırma
@@ -28,7 +28,7 @@ Notion benzeri sayfa/blok yapısıyla birleştirir.
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - Visual Studio 2026 (iş yükü: *ASP.NET and web development*) **veya** VS Code + C# Dev Kit
-- PostgreSQL 16+ *(2. haftadan itibaren)*
+- PostgreSQL 16+
 
 ### Visual Studio ile
 
@@ -46,7 +46,7 @@ dotnet run --project Kodlar/src/DijitalAjanda.Web
 
 Uygulama varsayılan olarak `http://localhost:5211` adresinde açılır.
 
-### Veritabanı ve migration *(2. haftada doldurulacak)*
+### Veritabanı ve migration 
 
 Veritabanı bağlantı dizesi **depoya konmaz**. Her geliştirici kendi bilgisayarında User Secrets ile tanımlar:
 
@@ -65,7 +65,7 @@ dotnet ef database update --project Kodlar/src/DijitalAjanda.Web
 
 ## Klasör Yapısı
 
-> Proje kodu ve dokümanları 1. hafta içinde depoya eklenecektir. Aşağıdaki yapı hedeflenen düzendir.
+> Aşağıdaki yapı hedeflenen düzendir.
 
 ```
 ProjeDokümanları/             # Ders proje kuralları ve plan belgesi
@@ -100,9 +100,3 @@ Kodlar/
 | 8 | Şahnur Çöğür | ⏳ | SignalR, Admin paneli |
 | 9 | Şahnur Çöğür | ⏳ | Testler ve yayına alma |
 
-## Çalışma Kuralları
-
-- Herkes **kendi GitHub hesabıyla** commit ve push yapar.
-- Her özellik ayrı bir dalda (`ozellik/kisa-ad`) geliştirilir, `main` dalına Pull Request ile birleştirilir.
-- Şifre, bağlantı dizesi ve API anahtarları **asla** depoya eklenmez (User Secrets kullanılır).
-- En az haftada bir kez push yapılır.
