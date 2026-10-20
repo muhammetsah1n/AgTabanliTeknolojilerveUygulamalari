@@ -1,0 +1,53 @@
+@{
+    var aktifController = ViewContext.RouteData.Values["controller"]?.ToString();
+
+    string AktifMi(string controller) => aktifController == controller ? "active" : "";
+
+    var menu = new[]
+    {
+        (Controller: "Panel", Baslik: "Panel", Ikon: "bi-grid-1x2"),
+        (Controller: "Gorevler", Baslik: "Görevler", Ikon: "bi-kanban"),
+        (Controller: "Notlar", Baslik: "Notlar", Ikon: "bi-journal-text"),
+        (Controller: "Aliskanliklar", Baslik: "Alışkanlıklar", Ikon: "bi-graph-up-arrow")
+    };
+}
+
+<header class="ust-menu">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand logo" asp-controller="Home" asp-action="Index">
+                <span class="logo-ikon"><i class="bi bi-journal-bookmark-fill"></i></span>
+                <span class="logo-yazi">
+                    <strong>Dijital Ajanda</strong>
+                    <small>Dijital Çalışma Alanı</small>
+                </span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#anaMenu"
+                    aria-controls="anaMenu" aria-expanded="false" aria-label="Menüyü aç/kapat">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="anaMenu">
+                <ul class="navbar-nav mx-lg-auto gap-lg-1">
+                    @foreach (var oge in menu)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @AktifMi(oge.Controller)" asp-controller="@oge.Controller" asp-action="Index">
+                                <i class="bi @oge.Ikon d-lg-none me-2"></i>@oge.Baslik
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+                <div class="d-flex align-items-center gap-2 sag-menu">
+                    <button type="button" class="btn btn-ikon" id="temaDegistir" title="Açık / koyu tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <a class="btn btn-cizgili" asp-controller="Hesap" asp-action="Giris">Giriş Yap</a>
+                    <a class="btn btn-ana" asp-controller="Hesap" asp-action="Kayit">Kayıt Ol</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
