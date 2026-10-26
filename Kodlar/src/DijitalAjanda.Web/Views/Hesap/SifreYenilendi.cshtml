@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Şifren yenilendi";
+}
+
+<section class="form-bolumu">
+    <div class="form-kart">
+        <div class="form-ikon"><i class="bi bi-lock"></i></div>
+        <partial name="_SifreAdimlari" model="3" />
+
+        <div class="basari-ikon"><i class="bi bi-check-lg"></i></div>
+        <h1 class="form-baslik">Şifren yenilendi</h1>
+        <p class="form-alt">Artık yeni şifrenle giriş yapabilirsin.</p>
+
+        <a class="btn btn-ana btn-blok" asp-action="Giris">Giriş sayfasına dön</a>
+    </div>
+</section>

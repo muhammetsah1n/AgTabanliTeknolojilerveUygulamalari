@@ -1,50 +1,33 @@
 <footer class="alt-bilgi">
     <div class="container">
-        <div class="row g-4">
+        <div class="row g-4 justify-content-between">
             <div class="col-12 col-lg-4">
-                <a class="logo mb-3 d-inline-flex" asp-controller="Home" asp-action="Index">
-                    <span class="logo-ikon"><i class="bi bi-journal-bookmark-fill"></i></span>
-                    <span class="logo-yazi">
-                        <strong>Dijital Ajanda</strong>
-                        <small>Dijital Çalışma Alanı</small>
-                    </span>
-                </a>
-                <p class="alt-bilgi-metin">
+                <strong class="alt-bilgi-ad">Dijital Ajanda</strong>
+                <p class="alt-bilgi-metin mt-3">
                     Görevlerini, etkinliklerini, notlarını ve alışkanlıklarını tek bir yerden yönet.
                     Kâğıt ajandanın sadeliği, dijital çalışma alanının esnekliği.
                 </p>
-            </div>
-
-            <div class="col-6 col-lg-2 offset-lg-1">
-                <h6>Uygulama</h6>
-                <ul class="list-unstyled">
-                    <li><a asp-controller="Panel" asp-action="Index">Panel</a></li>
-                    <li><a asp-controller="Gorevler" asp-action="Index">Görevler</a></li>
-                    <li><a asp-controller="Notlar" asp-action="Index">Notlar</a></li>
-                    <li><a asp-controller="Aliskanliklar" asp-action="Index">Alışkanlıklar</a></li>
-                </ul>
             </div>
 
             <div class="col-6 col-lg-2">
                 <h6>Destek</h6>
                 <ul class="list-unstyled">
                     <li><a href="#" class="pasif-link">Sıkça Sorulan Sorular</a></li>
-                    <li><a href="#" class="pasif-link">Kullanım Kılavuzu</a></li>
                     <li><a href="#" class="pasif-link">Bize Ulaşın</a></li>
                 </ul>
             </div>
 
-            <div class="col-12 col-lg-3">
+            <div class="col-6 col-lg-3">
                 <h6>Proje</h6>
                 <ul class="list-unstyled">
-                    <li><a href="https://github.com/sahnurcgr/Ag-Tabanli-Teknolojiler-ve-Uygulamalari" target="_blank" rel="noopener"><i class="bi bi-github me-1"></i>GitHub deposu</a></li>
+                    <li><a href="https://github.com/muhammetsah1n/AgTabanliTeknolojilerveUygulamalari" target="_blank" rel="noopener">GitHub deposu</a></li>
                     <li><a asp-controller="Home" asp-action="Gizlilik">Gizlilik ve kullanım koşulları</a></li>
                 </ul>
             </div>
         </div>
 
         <div class="alt-bilgi-son">
-            &copy; @DateTime.Now.Year Dijital Akademik Ajanda – Ankara Üniversitesi BLM4581 Projesi
+            &copy; @DateTime.Now.Year Dijital Akademik Ajanda – Ankara Üniversitesi BLM4581 Projesi · Dreamfire
         </div>
     </div>
 </footer>
