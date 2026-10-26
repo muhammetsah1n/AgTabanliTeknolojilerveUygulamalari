@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Erişim engellendi";
+    var adminMi = User.IsInRole(Roller.Admin);
+}
+
+<section class="durum-bolumu">
+    <div class="durum-kart">
+        <div class="form-ikon"><i class="bi bi-shield-lock"></i></div>
+        <h1 class="form-baslik">Bu sayfaya erişimin yok</h1>
+        <p>Bu sayfa yalnızca yönetici (Admin) rolündeki kullanıcılar içindir.</p>
+        @if (adminMi)
+        {
+            <a class="btn btn-ana" asp-controller="Yonetim" asp-action="Index">Panele dön</a>
+        }
+        else
+        {
+            <a class="btn btn-ana" asp-controller="Bugun" asp-action="Index">Panele dön</a>
+        }
+    </div>
+</section>

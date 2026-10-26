@@ -30,8 +30,18 @@ public class HomeController : Controller
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
+    public IActionResult Error(int? kod)
     {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        // Durum kodu sayfası yeniden çalıştırıldığında orijinal kod korunur
+        if (kod.HasValue)
+        {
+            Response.StatusCode = kod.Value;
+        }
+
+        return View(new ErrorViewModel
+        {
+            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+            DurumKodu = kod
+        });
     }
 }

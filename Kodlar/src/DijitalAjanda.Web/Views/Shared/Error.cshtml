@@ -1,17 +1,27 @@
 @model ErrorViewModel
 @{
-    ViewData["Title"] = "Hata";
+    ViewData["Title"] = Model.BulunamadiMi ? "Sayfa bulunamadı" : "Hata";
 }
 
-<section class="container py-5">
-    <div class="yakinda-kart mx-auto text-center">
-        <div class="yakinda-ikon mx-auto"><i class="bi bi-exclamation-triangle"></i></div>
-        <h1 class="sayfa-baslik">Bir hata oluştu</h1>
-        <p class="text-secondary">İsteğin işlenirken beklenmeyen bir sorun çıktı. Lütfen daha sonra tekrar dene.</p>
-        @if (Model.ShowRequestId)
+<section class="durum-bolumu">
+    <div class="durum-kart">
+        <div class="form-ikon">
+            <i class="bi @(Model.BulunamadiMi ? "bi-signpost-split" : "bi-exclamation-triangle")"></i>
+        </div>
+        @if (Model.BulunamadiMi)
         {
-            <p class="small text-secondary">İstek kimliği: <code>@Model.RequestId</code></p>
+            <h1 class="form-baslik">Sayfa bulunamadı</h1>
+            <p>Aradığın sayfa taşınmış ya da hiç var olmamış olabilir.</p>
         }
-        <a class="btn btn-ana mt-2" asp-controller="Home" asp-action="Index">Ana sayfaya dön</a>
+        else
+        {
+            <h1 class="form-baslik">Bir hata oluştu</h1>
+            <p>İsteğin işlenirken beklenmeyen bir sorun çıktı. Lütfen daha sonra tekrar dene.</p>
+            @if (Model.ShowRequestId)
+            {
+                <p class="istek-kimligi">İstek kimliği: <code>@Model.RequestId</code></p>
+            }
+        }
+        <a class="btn btn-ana" asp-controller="Home" asp-action="Index">Ana sayfaya dön</a>
     </div>
 </section>

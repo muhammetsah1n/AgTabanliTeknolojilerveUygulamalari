@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DijitalAjanda.Web.Models.ViewModels;
 
 namespace DijitalAjanda.Web.Controllers;
 
+[Authorize]
 public class GorevlerController : Controller
 {
     public IActionResult Index()
@@ -12,11 +14,11 @@ public class GorevlerController : Controller
             Baslik = "Görevler ve Etkinlikler",
             Ikon = "bi-kanban",
             PlanlananHafta = 4,
-            Aciklama = "Görev ve etkinliklerin kategorilere göre yönetildiği sayfa.",
+            Aciklama = "Görev, etkinlik ve kategorilerin yönetildiği sayfalar.",
             Ozellikler = new()
             {
-                "Görev, etkinlik ve kategori ekleme / düzenleme / silme",
-                "Tablo görünümü, durum ve kategori filtreleri",
+                "Renkli kategori kartları",
+                "Görev ve etkinlik ekleme / düzenleme / silme",
                 "Kanban panosu ve sürükle-bırak (5. hafta)",
                 "Alt görevler ve ilerleme çubukları (5. hafta)"
             }
