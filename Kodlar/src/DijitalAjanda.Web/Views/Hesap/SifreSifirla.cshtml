@@ -1,0 +1,54 @@
+@model SifreSifirlaViewModel
+@{
+    ViewData["Title"] = "Yeni şifre belirle";
+    var tekrarGonderildi = ViewBag.KodTekrarGonderildi is true;
+}
+
+<section class="form-bolumu">
+    <div class="form-kart">
+        <div class="form-ikon"><i class="bi bi-lock"></i></div>
+        <partial name="_SifreAdimlari" model="2" />
+
+        <h1 class="form-baslik">Yeni şifre belirle</h1>
+        <p class="form-alt"><strong>@Model.Email</strong> adresine gelen kodu ve yeni şifreni yaz.</p>
+
+        <form asp-action="SifreSifirla" method="post" class="form-alanlar" novalidate>
+            <input type="hidden" asp-for="Email" />
+
+            <div class="alan">
+                <label asp-for="Kod"></label>
+                <input asp-for="Kod" class="girdi girdi-kod" inputmode="numeric" autocomplete="one-time-code"
+                       maxlength="6" placeholder="••••••" />
+                <span asp-validation-for="Kod" role="alert"></span>
+            </div>
+
+            <div class="alan">
+                <label asp-for="YeniSifre"></label>
+                <input asp-for="YeniSifre" class="girdi" autocomplete="new-password" />
+                <small>En az 6 karakter.</small>
+                <span asp-validation-for="YeniSifre" role="alert"></span>
+            </div>
+
+            <div class="alan">
+                <label asp-for="YeniSifreTekrar"></label>
+                <input asp-for="YeniSifreTekrar" class="girdi" autocomplete="new-password" />
+                <span asp-validation-for="YeniSifreTekrar" role="alert"></span>
+            </div>
+
+            <button type="submit" class="btn btn-ana btn-blok">Şifremi sıfırla</button>
+        </form>
+
+        <form asp-action="KoduTekrarGonder" method="post" class="m-0">
+            <input type="hidden" name="email" value="@Model.Email" />
+            <button type="submit" class="btn-metin" disabled="@tekrarGonderildi">
+                @(tekrarGonderildi ? "Kod yeniden gönderildi" : "Kodu tekrar gönder")
+            </button>
+        </form>
+
+        <p class="form-alt-link mt-3">Şifreni hatırladın mı? <a asp-action="Giris">Giriş yap</a></p>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

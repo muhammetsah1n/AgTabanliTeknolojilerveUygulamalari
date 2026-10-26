@@ -1,0 +1,30 @@
+@model SifremiUnuttumViewModel
+@{
+    ViewData["Title"] = "Şifremi unuttum";
+}
+
+<section class="form-bolumu">
+    <div class="form-kart">
+        <div class="form-ikon"><i class="bi bi-lock"></i></div>
+        <partial name="_SifreAdimlari" model="1" />
+
+        <h1 class="form-baslik">Şifremi unuttum</h1>
+        <p class="form-alt">Hesabına bağlı e-posta adresini yaz, sana 6 haneli bir sıfırlama kodu gönderelim.</p>
+
+        <form asp-action="SifremiUnuttum" method="post" class="form-alanlar" novalidate>
+            <div class="alan">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="girdi" autocomplete="email" placeholder="ornek@mail.com" />
+                <span asp-validation-for="Email" role="alert"></span>
+            </div>
+
+            <button type="submit" class="btn btn-ana btn-blok">Kod gönder</button>
+        </form>
+
+        <p class="form-alt-link">Şifreni hatırladın mı? <a asp-action="Giris">Giriş yap</a></p>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,73 @@
+@model GirisViewModel
+@{
+    ViewData["Title"] = Model.YoneticiMi ? "Yönetici Girişi" : "Giriş Yap";
+
+    var sekmeler = new[]
+    {
+        (Tur: GirisTuru.Kullanici, Ad: "Kullanıcı girişi"),
+        (Tur: GirisTuru.Yonetici, Ad: "Yönetici girişi")
+    };
+}
+
+<section class="form-bolumu">
+    <div class="form-kart">
+        <div class="form-ikon">
+            <i class="bi @(Model.YoneticiMi ? "bi-shield-check" : "bi-box-arrow-in-right")"></i>
+        </div>
+        <h1 class="form-baslik">@(Model.YoneticiMi ? "Yönetici Girişi" : "Giriş Yap")</h1>
+        <p class="form-alt">
+            @(Model.YoneticiMi
+                ? "Yönetim paneline erişmek için yönetici hesabınla giriş yap."
+                : "Ajandana kaldığın yerden devam et.")
+        </p>
+
+        <div class="giris-sekmeleri" role="tablist" aria-label="Giriş türü">
+            @foreach (var sekme in sekmeler)
+            {
+                var secili = Model.Tur == sekme.Tur;
+                <a role="tab" aria-selected="@(secili ? "true" : "false")" class="@(secili ? "secili" : "")"
+                   asp-action="Giris" asp-route-tur="@sekme.Tur" asp-route-returnUrl="@Model.ReturnUrl">@sekme.Ad</a>
+            }
+        </div>
+
+        <form asp-action="Giris" method="post" class="form-alanlar" novalidate>
+            <input type="hidden" asp-for="Tur" />
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div asp-validation-summary="ModelOnly" class="form-uyari" role="alert"></div>
+
+            <div class="alan">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="girdi" autocomplete="email" />
+                <span asp-validation-for="Email" role="alert"></span>
+            </div>
+
+            <div class="alan">
+                <label asp-for="Sifre"></label>
+                <input asp-for="Sifre" class="girdi" autocomplete="current-password" />
+                <span asp-validation-for="Sifre" role="alert"></span>
+            </div>
+
+            <div class="form-satir">
+                <label class="form-onay">
+                    <input asp-for="BeniHatirla" />
+                    @Html.DisplayNameFor(m => m.BeniHatirla)
+                </label>
+                <a asp-action="SifremiUnuttum">Şifremi unuttum</a>
+            </div>
+
+            <button type="submit" class="btn btn-ana btn-blok">
+                @(Model.YoneticiMi ? "Yönetici olarak giriş yap" : "Giriş Yap")
+            </button>
+        </form>
+
+        @if (!Model.YoneticiMi)
+        {
+            <p class="form-alt-link">Hesabın yok mu? <a asp-action="Kayit">Kayıt ol</a></p>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
