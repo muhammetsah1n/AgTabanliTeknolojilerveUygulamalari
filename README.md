@@ -18,7 +18,7 @@ bullet journal yöntemiyle tasarlanmış ağ tabanlı bir ajanda uygulaması.
 ## Ekip — Dreamfire
 
 | Ad Soyad | GitHub |
-|---|---|---|
+|---|---|
 | Yağmur Kalyoncu |  [@Yagmurkalyoncu](https://github.com/Yagmurkalyoncu) |
 | Muhammet Şahin  | [@muhammetsah1n](https://github.com/muhammetsah1n) | 
 | Şahnur Çöğür    | [@sahnurcgr](https://github.com/sahnurcgr) | 
