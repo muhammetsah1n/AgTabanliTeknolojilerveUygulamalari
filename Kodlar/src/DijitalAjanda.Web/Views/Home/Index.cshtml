@@ -2,59 +2,60 @@
 @{
     ViewData["Title"] = "Ana Sayfa";
 
-    var gunler = new[] { "PZT", "SAL", "ÇAR", "PER", "CUM", "CMT", "PAZ" };
-    var ornekler = new Dictionary<int, (string Baslik, string Saat, string Renk)[]>
+    var girisYapti = User.Identity?.IsAuthenticated == true;
+    var adminMi = User.IsInRole(Roller.Admin);
+
+    var ornekMaddeler = new[]
     {
-        [0] = new[] { ("Ekip toplantısı", "09:30", "renk-is"), ("Pilates", "19:00", "renk-saglik") },
-        [1] = new[] { ("Müşteri sunumu", "11:00", "renk-is"), ("Fatura son gün", "Bugün", "renk-acil") },
-        [2] = new[] { ("Diş hekimi", "10:00", "renk-turuncu") },
-        [3] = new[] { ("Proje teslimi", "17:00", "renk-acil"), ("Koşu 5 km", "07:00", "renk-saglik") },
-        [4] = new[] { ("Akşam yemeği", "20:00", "renk-sosyal") },
-        [5] = new[] { ("Konser", "21:00", "renk-kisisel") },
-        [6] = new[] { ("Haftalık plan", "20:00", "renk-ev") }
+        (Isaret: "○", Metin: "09:30 Ekip toplantısı", Bitti: false),
+        (Isaret: "×", Metin: "Fatura öde", Bitti: true),
+        (Isaret: "•", Metin: "Rapor taslağını bitir", Bitti: false),
+        (Isaret: "•", Metin: "2 litre su iç", Bitti: false),
+        (Isaret: "×", Metin: "20 sayfa kitap oku", Bitti: true)
     };
 }
 
 <section class="giris-bolumu">
     <div class="container">
-        <div class="row align-items-center g-4 g-lg-5">
-            <div class="col-12 col-lg-5">
-                <span class="etiket mb-3">Kâğıt ajandanın sadeliği, dijitalin esnekliği</span>
-                <h1 class="giris-baslik">Günün, haftan ve hedeflerin tek bir sayfada.</h1>
+        <div class="row align-items-center g-5">
+            <div class="col-12 col-lg-6">
+                <span class="etiket">Kâğıt ajandanın sadeliği, dijitalin esnekliği</span>
+                <h1 class="giris-baslik el">Günün, haftan ve hedeflerin tek bir defterde.</h1>
                 <p class="giris-metin">
-                    Dijital Ajanda; görevlerini, etkinliklerini, notlarını ve alışkanlıklarını tek yerden
-                    yönetmen için tasarlanmış bir çalışma alanı. Bilgisayardan, tabletten ya da telefondan
-                    aynı içeriğe ulaş.
+                    Bullet journal tadında bir dijital ajanda: yapılacaklarını • ile yaz, bitirince × ile işaretle.
+                    Görevler, notlar, su takibi ve kitaplığın aynı yerde; bilgisayardan, tabletten ya da telefondan ulaş.
                 </p>
                 <div class="d-flex flex-wrap gap-2 mt-4">
-                    <a class="btn btn-ana btn-lg" asp-controller="Hesap" asp-action="Kayit">Ücretsiz Başla</a>
-                    <a class="btn btn-cizgili btn-lg" asp-controller="Bugun" asp-action="Index">Ajandanı Aç</a>
+                    @if (adminMi)
+                    {
+                        <a class="btn btn-ana btn-lg" asp-controller="Yonetim" asp-action="Index">Yönetim paneline git</a>
+                    }
+                    else if (girisYapti)
+                    {
+                        <a class="btn btn-ana btn-lg" asp-controller="Bugun" asp-action="Index">Defterini aç</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-ana btn-lg" asp-controller="Hesap" asp-action="Kayit">Defterini oluştur</a>
+                        <a class="btn btn-cizgili btn-lg" asp-controller="Hesap" asp-action="Giris">Giriş yap</a>
+                    }
                 </div>
             </div>
 
-            <div class="col-12 col-lg-7">
-                <div class="onizleme-kart" aria-label="Haftalık planlayıcı önizlemesi">
-                    <div class="onizleme-ust">
-                        <strong>Bu hafta</strong>
-                        <span class="text-secondary">4 etkinlik · 2 son tarih</span>
-                    </div>
-                    <div class="hafta-izgara">
-                        @for (var i = 0; i < gunler.Length; i++)
+            <div class="col-12 col-lg-6">
+                <div class="defter defter-onizleme" aria-label="Bugün sayfası önizlemesi">
+                    <span class="bant" aria-hidden="true"></span>
+                    <h2 class="el">Salı, 20 Ekim</h2>
+                    <ul class="madde-listesi">
+                        @foreach (var madde in ornekMaddeler)
                         {
-                            <div class="gun-sutun @(i == 1 ? "bugun" : "")">
-                                <div class="gun-baslik">
-                                    <span>@gunler[i]</span><strong>@(12 + i)</strong>
-                                </div>
-                                @foreach (var oge in ornekler[i])
-                                {
-                                    <div class="plan-oge @oge.Renk">
-                                        <span>@oge.Baslik</span>
-                                        <small>@oge.Saat</small>
-                                    </div>
-                                }
-                            </div>
+                            <li>
+                                <span class="isaret" aria-hidden="true">@madde.Isaret</span>
+                                <span class="@(madde.Bitti ? "bitti" : "")">@madde.Metin</span>
+                            </li>
                         }
-                    </div>
+                    </ul>
+                    <p class="isaret-aciklama">• yapılacak &nbsp; × bitti &nbsp; ○ etkinlik</p>
                 </div>
             </div>
         </div>
@@ -63,15 +64,15 @@
 
 <section class="container py-5">
     <div class="text-center mb-5">
-        <h2 class="bolum-baslik">Dört modül, tek çalışma alanı</h2>
-        <p class="text-secondary">Her modül ayrı çalışır, hepsi aynı ajandada birleşir.</p>
+        <h2 class="bolum-baslik el mb-1">Dört bölüm, tek defter</h2>
+        <p class="text-secondary">Her bölüm ayrı çalışır, hepsi aynı ajandada birleşir.</p>
     </div>
     <div class="row g-4">
         @foreach (var kart in Model)
         {
             <div class="col-12 col-sm-6 col-lg-3">
-                <div class="ozellik-kart h-100">
-                    <div class="ozellik-ikon @kart.RenkSinifi"><i class="bi @kart.Ikon"></i></div>
+                <div class="ozellik-kart h-100 @kart.RenkSinifi">
+                    <div class="ozellik-ikon"><i class="bi @kart.Ikon"></i></div>
                     <h3>@kart.Baslik</h3>
                     <p>@kart.Aciklama</p>
                 </div>
@@ -85,18 +86,18 @@
         <div class="row g-4 text-center text-md-start">
             <div class="col-12 col-md-4">
                 <span class="adim-no">1</span>
-                <h3>Hesabını oluştur</h3>
+                <h3>Defterini oluştur</h3>
                 <p>Birkaç saniyede kayıt ol; kendi kategorilerini belirle.</p>
             </div>
             <div class="col-12 col-md-4">
                 <span class="adim-no">2</span>
-                <h3>Haftanı planla</h3>
-                <p>Görev ve etkinlikleri ekle, Kanban'da durumlarını güncelle.</p>
+                <h3>Gününü yaz</h3>
+                <p>Bugün sayfasına maddelerini ekle, haftanı ve ayını planla.</p>
             </div>
             <div class="col-12 col-md-4">
                 <span class="adim-no">3</span>
                 <h3>Gelişimini izle</h3>
-                <p>Alışkanlık serilerini ve tamamlanma oranlarını grafiklerde gör.</p>
+                <p>Alışkanlık serilerini, su hedefini ve kitaplığını takip et.</p>
             </div>
         </div>
     </div>

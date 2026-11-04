@@ -1,23 +1,56 @@
-﻿<!DOCTYPE html>
-<html lang="tr" data-bs-theme="light">
+﻿@using DijitalAjanda.Web.Models.Entities
+@using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<Kullanici> KullaniciYonetici
+@inject IAntiforgery Antiforgery
+@{
+    // Giriş yapan kullanıcının hesabında kayıtlı tema, tarayıcıdaki seçimden önce gelir
+    string? kayitliTema = null;
+    string? dogrulamaAnahtari = null;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var kullanici = await KullaniciYonetici.GetUserAsync(User);
+        kayitliTema = kullanici?.TemaTercihi switch
+        {
+            Tema.Koyu => "dark",
+            Tema.Acik => "light",
+            _ => null
+        };
+        dogrulamaAnahtari = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    }
+}
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="light" data-kayitli-tema="@kayitliTema">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @if (dogrulamaAnahtari is not null)
+    {
+        <meta name="tema-adresi" content="@Url.Action("Kaydet", "Tema")" />
+        <meta name="istek-dogrulama" content="@dogrulamaAnahtari" />
+    }
     <title>@ViewData["Title"] - Dijital Ajanda</title>
     <script>
         (function () {
+            var html = document.documentElement;
+            var tema = html.getAttribute("data-kayitli-tema");
             try {
-                var tema = localStorage.getItem("tema");
-                if (!tema) {
-                    tema = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                if (tema) {
+                    localStorage.setItem("tema", tema);
+                } else {
+                    tema = localStorage.getItem("tema");
                 }
-                document.documentElement.setAttribute("data-bs-theme", tema);
             } catch (e) { }
+            if (!tema) {
+                tema = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            html.setAttribute("data-bs-theme", tema);
         })();
     </script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Stiller", required: false)
 </head>
 <body>
     <partial name="_Header" />
