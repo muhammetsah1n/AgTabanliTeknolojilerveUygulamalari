@@ -11,14 +11,14 @@ public class HomeController : Controller
     {
         var ozellikler = new List<OzellikKarti>
         {
-            new() { Baslik = "Haftalık Planlayıcı", Ikon = "bi-calendar-week", RenkSinifi = "renk-is",
-                    Aciklama = "Toplantı, randevu ve son tarihlerini Pazartesi–Pazar düzeninde tek ekranda gör." },
+            new() { Baslik = "Bugün Sayfası", Ikon = "bi-journal-check", RenkSinifi = "renk-is",
+                    Aciklama = "Gününü bullet journal gibi yaz; haftanı ve ayını aynı defterde gör." },
             new() { Baslik = "Görev ve Etkinlik Takibi", Ikon = "bi-kanban", RenkSinifi = "renk-saglik",
                     Aciklama = "Kategorilere ayır, Kanban panosunda sürükle, ilerlemeyi takip et." },
-            new() { Baslik = "Not Sayfaları", Ikon = "bi-journal-text", RenkSinifi = "renk-kisisel",
-                    Aciklama = "Kapak görselli, iç içe sayfalar ve sürükle-bırak bloklarla notlarını düzenle." },
-            new() { Baslik = "Alışkanlık Takibi", Ikon = "bi-graph-up-arrow", RenkSinifi = "renk-sosyal",
-                    Aciklama = "Günlük alışkanlıklarını işaretle, serini ve gelişimini grafiklerle izle." }
+            new() { Baslik = "Alışkanlık ve Su Takibi", Ikon = "bi-droplet-half", RenkSinifi = "renk-kisisel",
+                    Aciklama = "Alışkanlıklarını işaretle, serini koru, günlük su hedefini bardak bardak doldur." },
+            new() { Baslik = "Kitaplık", Ikon = "bi-bookshelf", RenkSinifi = "renk-sosyal",
+                    Aciklama = "Okuduğun kitapları ve izlediğin filmleri puanla, renkli rafına diz." }
         };
 
         return View(ozellikler);

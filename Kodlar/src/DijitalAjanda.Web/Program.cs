@@ -47,6 +47,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<IEpostaGonderici, SmtpEpostaGonderici>();
+builder.Services.AddScoped<IBugunServisi, BugunServisi>();
+builder.Services.AddScoped<IMaddeServisi, MaddeServisi>();
 
 builder.Services.AddControllersWithViews();
 
