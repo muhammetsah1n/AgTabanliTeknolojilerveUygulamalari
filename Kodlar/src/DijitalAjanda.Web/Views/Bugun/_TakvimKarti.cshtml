@@ -1,0 +1,28 @@
+@model BugunViewModel
+@using System.Text.Json
+@{
+    // İlk ayın verisi sayfayla gelir; ay değiştirildikçe bugun.js /Bugun/Takvim adresinden ister
+    var takvimVerisi = JsonSerializer.Serialize(Model.Takvim, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+}
+
+<div class="yan-kart" data-takvim="@takvimVerisi">
+    <div class="yan-kart-ust">
+        <h2 data-takvim-baslik>@TurkceTarih.AyBasligi(Model.Odak)</h2>
+        <div class="d-flex gap-1">
+            <button type="button" class="btn btn-ikon kucuk" data-takvim-onceki aria-label="Önceki ay"><i class="bi bi-chevron-left"></i></button>
+            <button type="button" class="btn btn-ikon kucuk" data-takvim-sonraki aria-label="Sonraki ay"><i class="bi bi-chevron-right"></i></button>
+        </div>
+    </div>
+    @if (Model.Gorunum == Gorunum.Gun)
+    {
+        <p class="takvim-alt">Etkinlik tarihi: <strong data-tarih-metni>@TurkceTarih.KisaTarih(Model.Odak)</strong></p>
+    }
+    else
+    {
+        <p class="takvim-alt">Açmak istediğin güne tıkla</p>
+    }
+
+    <div class="takvim-izgara" data-takvim-izgara></div>
+
+    <ul class="tatil-listesi" data-tatil-listesi></ul>
+</div>

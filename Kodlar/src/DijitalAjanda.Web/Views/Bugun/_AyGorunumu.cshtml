@@ -1,0 +1,43 @@
+@model BugunViewModel
+@{
+    const int GosterilenMadde = 3;
+    ViewData["AyGorunumu"] = true;
+}
+
+<partial name="_Gosterge" />
+
+<div class="defter takvim-defter">
+    <span class="bant" aria-hidden="true"></span>
+    <div class="yatay-kaydir">
+        <div class="ay-tablo">
+            @foreach (var gunAdi in TurkceTarih.TakvimGunleri)
+            {
+                <div class="ay-gun-adi">@gunAdi</div>
+            }
+
+            @foreach (var hucre in Model.Hucreler)
+            {
+                var fazla = hucre.Maddeler.Count - GosterilenMadde;
+                var siniflar = (hucre.BuAyMi ? "" : " diger-ay") + (hucre.Tatil is null ? "" : " tatil") + (hucre.BugunMu ? " bugun-gun" : "");
+
+                <div class="ay-hucre@(siniflar)" title="@hucre.Tatil">
+                    <div class="ay-hucre-ust">
+                        <a class="ay-hucre-no" asp-action="Index" asp-route-gorunum="Gun" asp-route-tarih="@TurkceTarih.Iso(hucre.Tarih)"
+                           aria-label="@hucre.Tarih.Day @TurkceTarih.Aylar[hucre.Tarih.Month - 1] gününü aç">@hucre.Tarih.Day</a>
+                    </div>
+                    <div class="hucre-maddeler">
+                        @foreach (var madde in hucre.Maddeler.Take(GosterilenMadde))
+                        {
+                            <partial name="_TakvimMaddesi" model="madde" />
+                        }
+                    </div>
+                    @if (fazla > 0)
+                    {
+                        <a class="ay-fazla" asp-action="Index" asp-route-gorunum="Gun" asp-route-tarih="@TurkceTarih.Iso(hucre.Tarih)">+@fazla daha</a>
+                    }
+                    <partial name="_HucreEkle" model="hucre.Tarih" />
+                </div>
+            }
+        </div>
+    </div>
+</div>

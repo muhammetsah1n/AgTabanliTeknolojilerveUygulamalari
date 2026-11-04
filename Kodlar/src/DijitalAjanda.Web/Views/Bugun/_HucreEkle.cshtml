@@ -1,0 +1,13 @@
+@model DateOnly
+
+@* Hafta ve ay kutularına doğrudan madde ekleme; tür düğmesi Yapılacak → Etkinlik → Not arasında döner *@
+<div class="hucre-ekle" data-hucre-ekle data-tarih="@TurkceTarih.Iso(Model)">
+    <button type="button" class="hucre-ekle-ac" data-hucre-ekle-ac
+            aria-label="@Model.Day @TurkceTarih.Aylar[Model.Month - 1] gününe madde ekle"><i class="bi bi-plus-lg"></i></button>
+    <div class="hucre-ekle-alan" hidden>
+        <button type="button" class="tur-sec tur-yapilacak" data-tur-sec data-tur="Yapilacak"
+                aria-label="Tür: Yapılacak (değiştirmek için tıkla)">•</button>
+        <input type="text" class="hucre-ekle-girdi" maxlength="150" placeholder="yapılacak yaz…"
+               aria-label="Yeni madde" autocomplete="off" />
+    </div>
+</div>

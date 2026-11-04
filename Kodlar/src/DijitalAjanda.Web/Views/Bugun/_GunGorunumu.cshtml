@@ -1,0 +1,160 @@
+@model BugunViewModel
+@{
+    var tarih = TurkceTarih.Iso(Model.Odak);
+    var onerilenSaat = (TimeOnly)ViewData["OnerilenSaat"]!;
+    var mesaj = TempData["BugunMesaj"] as string;
+}
+
+<div class="defter gun-defter">
+    <span class="bant" aria-hidden="true"></span>
+
+    <div class="gun-ust">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h2 class="el">@Model.Odak.Day @TurkceTarih.Aylar[Model.Odak.Month - 1], @TurkceTarih.GunAdi(Model.Odak)</h2>
+            @if (Model.BugunMu)
+            {
+                <span class="bugun-rozet">Bugün</span>
+            }
+        </div>
+        <span class="tamamlanma">%@Model.TamamlanmaYuzdesi tamamlandı</span>
+    </div>
+
+    <div class="sutunlar">
+        @* ---------- Notlar: yazdıkça kaydedilen çizgili kartlar ---------- *@
+        <div class="sutun sutun-not" data-notlar data-tarih="@tarih">
+            <div class="sutun-baslik">
+                <h3><i class="bi bi-pencil"></i>Notlar</h3>
+                <span data-not-sayisi>@Model.Notlar.Count madde</span>
+            </div>
+
+            <div class="not-listesi">
+                @for (var i = 0; i < Model.Notlar.Count; i++)
+                {
+                    var not = Model.Notlar[i];
+                    <div class="not-kart" data-id="@not.Id">
+                        <textarea class="not-alan" rows="4" maxlength="1000" aria-label="Not @(i + 1)">@not.Metin</textarea>
+                        <button type="button" class="madde-sil" data-not-sil aria-label="Not @(i + 1) sil"><i class="bi bi-trash3"></i></button>
+                    </div>
+                }
+                @if (!Model.Notlar.Any())
+                {
+                    <div class="not-kart">
+                        <textarea class="not-alan" rows="4" maxlength="1000" aria-label="Not 1" placeholder="Yazmaya başla…"></textarea>
+                        <button type="button" class="madde-sil" data-not-sil aria-label="Not 1 sil"><i class="bi bi-trash3"></i></button>
+                    </div>
+                }
+            </div>
+
+            <template id="notSablonu">
+                <div class="not-kart">
+                    <textarea class="not-alan" rows="4" maxlength="1000" aria-label="Yeni not" placeholder="Yeni madde…"></textarea>
+                    <button type="button" class="madde-sil" data-not-sil aria-label="Notu sil"><i class="bi bi-trash3"></i></button>
+                </div>
+            </template>
+
+            <button type="button" class="yeni-madde" data-not-ekle><i class="bi bi-plus-lg"></i>Yeni madde</button>
+        </div>
+
+        @* ---------- Yapılacaklar ---------- *@
+        <div class="sutun sutun-yapilacak">
+            <div class="sutun-baslik">
+                <h3><i class="bi bi-check2-square"></i>Yapılacaklar</h3>
+                <span>@Model.AcikYapilacakSayisi açık</span>
+            </div>
+
+            <ul class="madde-satirlari">
+                @foreach (var yapilacak in Model.Yapilacaklar)
+                {
+                    <li class="@(yapilacak.Bitti ? "bitti" : "")">
+                        <form asp-action="YapilacakDegistir" method="post">
+                            <partial name="_SayfaKonumu" />
+                            <input type="hidden" name="Id" value="@yapilacak.Id" />
+                            <button type="submit" class="isaret-dugme"
+                                    aria-label="@(yapilacak.Bitti ? "Yapılacak yap" : "Bitti olarak işaretle"): @yapilacak.Metin">@yapilacak.Isaret</button>
+                        </form>
+                        <span class="satir-metin">@yapilacak.Metin</span>
+                        <form asp-action="YapilacakSil" method="post">
+                            <partial name="_SayfaKonumu" />
+                            <input type="hidden" name="Id" value="@yapilacak.Id" />
+                            <button type="submit" class="madde-sil" aria-label="Sil: @yapilacak.Metin"><i class="bi bi-trash3"></i></button>
+                        </form>
+                    </li>
+                }
+            </ul>
+
+            <form asp-action="YapilacakEkle" method="post" class="ekle-satir">
+                <partial name="_SayfaKonumu" />
+                <input type="hidden" name="Tarih" value="@tarih" />
+                <label class="visually-hidden" for="yeniYapilacak">Yeni yapılacak</label>
+                <input id="yeniYapilacak" name="Baslik" class="girdi-kart" placeholder="yaz, Enter'a bas…"
+                       maxlength="150" required autocomplete="off" />
+                <button type="submit" class="ekle-dugme" aria-label="Yapılacak ekle"><i class="bi bi-plus-lg"></i></button>
+            </form>
+        </div>
+
+        @* ---------- Etkinlikler ---------- *@
+        <div class="sutun sutun-etkinlik">
+            <div class="sutun-baslik">
+                <h3><i class="bi bi-calendar-event"></i>Etkinlikler</h3>
+                <span>@Model.Etkinlikler.Count kayıt</span>
+            </div>
+
+            <div class="etkinlik-listesi">
+                @foreach (var etkinlik in Model.Etkinlikler)
+                {
+                    <div class="etkinlik-satir">
+                        <span class="saat-rozet">@(etkinlik.Saat is TimeOnly saat ? TurkceTarih.SaatMetni(saat) : "")</span>
+                        <span class="satir-metin kalin">@etkinlik.Metin</span>
+                        <form asp-action="EtkinlikSil" method="post">
+                            <partial name="_SayfaKonumu" />
+                            <input type="hidden" name="Id" value="@etkinlik.Id" />
+                            <button type="submit" class="madde-sil" aria-label="Sil: @etkinlik.Metin"><i class="bi bi-trash3"></i></button>
+                        </form>
+                    </div>
+                }
+                @if (!Model.Etkinlikler.Any())
+                {
+                    <p class="bos-metin">Bu gün için etkinlik yok.</p>
+                }
+            </div>
+
+            <form asp-action="EtkinlikEkle" method="post" class="etkinlik-ekle">
+                <partial name="_SayfaKonumu" />
+                <input type="hidden" name="Tarih" value="@tarih" data-tarih-girdi />
+                <input type="hidden" name="Saat" value="@TurkceTarih.SaatMetni(onerilenSaat)" data-saat-girdi />
+
+                <label for="yeniEtkinlik">Yeni etkinlik</label>
+                <input id="yeniEtkinlik" name="Baslik" class="girdi-kart" placeholder="etkinlik adı…"
+                       maxlength="150" required autocomplete="off" />
+                <div class="secim-satiri">
+                    <button type="button" class="secim-dugme genis" data-tarih-ac aria-expanded="false"
+                            aria-label="Tarih seç, seçili @TurkceTarih.KisaTarih(Model.Odak)">
+                        <i class="bi bi-calendar3"></i><span data-tarih-metni>@TurkceTarih.KisaTarih(Model.Odak)</span>
+                    </button>
+                    <div class="saat-kap">
+                        <button type="button" class="secim-dugme" data-saat-ac aria-expanded="false"
+                                aria-label="Saat seç, seçili @TurkceTarih.SaatMetni(onerilenSaat)">
+                            <i class="bi bi-clock"></i><span data-saat-metni>@TurkceTarih.SaatMetni(onerilenSaat)</span>
+                        </button>
+                        <partial name="_SaatSecici" model="onerilenSaat" />
+                    </div>
+                </div>
+
+                <div class="tarih-secici" hidden>
+                    <div class="tarih-secici-ust">
+                        <button type="button" class="kucuk-ok" data-takvim-onceki aria-label="Önceki ay"><i class="bi bi-chevron-left"></i></button>
+                        <span data-takvim-baslik></span>
+                        <button type="button" class="kucuk-ok" data-takvim-sonraki aria-label="Sonraki ay"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                    <div class="takvim-izgara kucuk" data-takvim-izgara></div>
+                </div>
+
+                <button type="submit" class="ekle-genis"><i class="bi bi-plus-lg"></i>Etkinlik ekle</button>
+                @if (!string.IsNullOrEmpty(mesaj))
+                {
+                    <p class="ekle-mesaj" role="status">@mesaj</p>
+                }
+            </form>
+        </div>
+    </div>
+</div>

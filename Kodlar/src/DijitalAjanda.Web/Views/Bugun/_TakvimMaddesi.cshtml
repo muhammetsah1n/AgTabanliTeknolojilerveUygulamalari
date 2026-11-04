@@ -1,0 +1,34 @@
+@model MaddeOge
+@{
+    var turSinifi = Model.Tur switch
+    {
+        MaddeTuru.Not => "tur-not",
+        MaddeTuru.Etkinlik => "tur-etkinlik",
+        _ => "tur-yapilacak"
+    };
+    var turAdi = Model.Tur switch
+    {
+        MaddeTuru.Not => "Not",
+        MaddeTuru.Etkinlik => "Etkinlik",
+        _ => "Yapılacak"
+    };
+    var saat = Model.Saat is TimeOnly s ? TurkceTarih.SaatMetni(s) : null;
+
+    // Ay görünümünde kısa gösterim: "16:00 Toplantı" (yalnızca ilk satır)
+    var ayMi = ViewData["AyGorunumu"] is true;
+    var gosterilen = ayMi ? (saat is null ? "" : saat + " ") + Model.Metin.Split('\n')[0] : Model.Metin;
+}
+
+@* Maddeye tıklanınca olduğu yerde düzenlenir, × ile silinir (bugun.js) *@
+<div class="madde-kap">
+    <button type="button" class="madde @turSinifi @(Model.Bitti ? "bitti" : "")" data-madde
+            data-tur="@Model.Tur" data-id="@Model.Id" data-metin="@Model.Metin" data-saat="@saat"
+            data-kisa="@(ayMi ? "1" : null)" aria-label="@turAdi, düzenle: @Model.Metin">
+        <span class="madde-metin">@gosterilen</span>
+        @if (!ayMi && saat is not null)
+        {
+            <small>@saat</small>
+        }
+    </button>
+    <button type="button" class="madde-x" data-madde-sil aria-label="Sil: @Model.Metin"><i class="bi bi-x-lg"></i></button>
+</div>

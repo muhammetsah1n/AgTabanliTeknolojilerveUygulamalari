@@ -1,0 +1,30 @@
+@model BugunViewModel
+
+<div class="yan-kart">
+    <h2 class="mb-3">Yaklaşan etkinlikler</h2>
+
+    @if (!Model.YaklasanEtkinlikler.Any())
+    {
+        <p class="bos-metin m-0">Yaklaşan etkinlik yok.</p>
+    }
+    else
+    {
+        <ul class="yaklasan">
+            @foreach (var etkinlik in Model.YaklasanEtkinlikler)
+            {
+                <li>
+                    <a class="yaklasan-oge" asp-action="Index" asp-route-gorunum="Gun" asp-route-tarih="@TurkceTarih.Iso(etkinlik.Tarih)">
+                        <span class="tarih-rozet">
+                            <strong>@etkinlik.Tarih.Day</strong>
+                            <small>@TurkceTarih.KisaAylar[etkinlik.Tarih.Month - 1]</small>
+                        </span>
+                        <span class="yaklasan-metin">
+                            <span class="baslik">@etkinlik.Metin</span>
+                            <small>@TurkceTarih.GunAdi(etkinlik.Tarih)@(etkinlik.Saat is TimeOnly saat ? " " + TurkceTarih.SaatMetni(saat) : "")</small>
+                        </span>
+                    </a>
+                </li>
+            }
+        </ul>
+    }
+</div>
