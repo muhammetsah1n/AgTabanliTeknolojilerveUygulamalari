@@ -1,0 +1,32 @@
+@model BugunViewModel
+
+<partial name="_Gosterge" />
+
+<div class="defter takvim-defter">
+    <span class="bant" aria-hidden="true"></span>
+    <div class="yatay-kaydir">
+        <div class="hafta-tablo">
+            @foreach (var hucre in Model.Hucreler)
+            {
+                <div class="hafta-gun @(hucre.BugunMu ? "bugun-gun" : "")">
+                    <a class="hafta-gun-baslik" asp-action="Index" asp-route-gorunum="Gun" asp-route-tarih="@TurkceTarih.Iso(hucre.Tarih)"
+                       aria-label="@hucre.Tarih.Day @TurkceTarih.Aylar[hucre.Tarih.Month - 1] @TurkceTarih.GunAdi(hucre.Tarih) gününü aç">
+                        <span>@TurkceTarih.KisaGunler[TurkceTarih.GunSirasi(hucre.Tarih)]</span>
+                        <strong>@hucre.Tarih.Day</strong>
+                    </a>
+                    @if (hucre.Tatil is not null)
+                    {
+                        <div class="tatil-cip"><span>@hucre.Tatil</span><small>Resmi tatil</small></div>
+                    }
+                    <div class="hucre-maddeler">
+                        @foreach (var madde in hucre.Maddeler)
+                        {
+                            <partial name="_TakvimMaddesi" model="madde" />
+                        }
+                    </div>
+                    <partial name="_HucreEkle" model="hucre.Tarih" />
+                </div>
+            }
+        </div>
+    </div>
+</div>

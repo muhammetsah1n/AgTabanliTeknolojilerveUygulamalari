@@ -1,0 +1,38 @@
+@model TimeOnly
+@using System.Globalization
+@{
+    // Kadran üzerindeki 12 saat düğmesinin konumu (240 px'lik çemberin üzerinde)
+    string Px(double deger) => deger.ToString("0.0", CultureInfo.InvariantCulture) + "px";
+    var saatler = new[] { 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+}
+
+@* Etkinlikler sütunundaki saat düğmesine basınca açılan yuvarlak kadran *@
+<div class="saat-penceresi" role="dialog" aria-label="Etkinlik saati seç" hidden
+     data-saat="@Model.Hour" data-dakika="@Model.Minute">
+    <div class="saat-pencere-ust">
+        <span>Etkinlik saati</span>
+        <strong data-saat-metni>@TurkceTarih.SaatMetni(Model)</strong>
+    </div>
+    <div class="kadran">
+        <span class="akrep" data-akrep aria-hidden="true"></span>
+        <span class="yelkovan" data-yelkovan aria-hidden="true"></span>
+        <span class="merkez" aria-hidden="true"></span>
+        @foreach (var n in saatler)
+        {
+            var aci = n * Math.PI / 6;
+            <button type="button" class="kadran-saat" data-saat-n="@n" aria-label="Saat @n" aria-pressed="false"
+                    style="left: @Px(120 + 92 * Math.Sin(aci) - 19); top: @Px(120 - 92 * Math.Cos(aci) - 19)">@n</button>
+        }
+    </div>
+    <div class="cip-satiri iki">
+        <button type="button" class="cip" data-yarim="0" aria-label="Öğleden önce" aria-pressed="false">ÖÖ</button>
+        <button type="button" class="cip" data-yarim="12" aria-label="Öğleden sonra" aria-pressed="false">ÖS</button>
+    </div>
+    <div class="cip-satiri dort">
+        @foreach (var dakika in new[] { 0, 15, 30, 45 })
+        {
+            <button type="button" class="cip" data-dakika="@dakika" aria-label="Dakika @dakika.ToString("00")" aria-pressed="false">:@dakika.ToString("00")</button>
+        }
+    </div>
+    <button type="button" class="saat-tamam" data-saat-kapat>Tamam</button>
+</div>

@@ -1,0 +1,87 @@
+@model BugunViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Bugün";
+
+    var sekmeler = new[] { (Gorunum: Gorunum.Gun, Ad: "Gün"), (Gorunum: Gorunum.Hafta, Ad: "Hafta"), (Gorunum: Gorunum.Ay, Ad: "Ay") };
+    var adimAdi = Model.Gorunum switch { Gorunum.Hafta => "hafta", Gorunum.Ay => "ay", _ => "gün" };
+    var hata = TempData["BugunHata"] as string;
+
+    // Etkinlikler sütunundaki saat kadranının başlangıç değeri: şu andan sonraki ilk çeyrek saat
+    var simdi = DateTime.Now;
+    ViewData["OnerilenSaat"] = new TimeOnly(simdi.Hour, 0).AddMinutes((simdi.Minute / 15 + 1) * 15);
+
+    // Sayfadaki JavaScript'in arka planda istek atacağı adresler
+    var adresler = JsonSerializer.Serialize(new
+    {
+        sayfa = Url.Action("Index"),
+        notEkle = Url.Action("NotEkle"),
+        notGuncelle = Url.Action("NotGuncelle"),
+        notSil = Url.Action("NotSil"),
+        yapilacakEkle = Url.Action("YapilacakEkle"),
+        yapilacakGuncelle = Url.Action("YapilacakGuncelle"),
+        yapilacakSil = Url.Action("YapilacakSil"),
+        etkinlikEkle = Url.Action("EtkinlikEkle"),
+        etkinlikGuncelle = Url.Action("EtkinlikGuncelle"),
+        etkinlikSil = Url.Action("EtkinlikSil"),
+        takvim = Url.Action("Takvim")
+    });
+}
+
+@section Stiller {
+    <link rel="stylesheet" href="~/css/bugun.css" asp-append-version="true" />
+}
+
+<section class="container bugun-sayfa" data-gorunum="@Model.Gorunum" data-odak="@TurkceTarih.Iso(Model.Odak)"
+         data-bugun="@TurkceTarih.Iso(Model.BugununTarihi)" data-adresler="@adresler">
+    <h1 class="selam el">Merhaba@(string.IsNullOrEmpty(Model.Ad) ? "" : " " + Model.Ad),</h1>
+    <p class="selam-alt el">bugün ne yapmak istersin?</p>
+
+    <div class="bugun-arac">
+        <nav class="gorunum-sekmeleri" aria-label="Görünüm">
+            @foreach (var sekme in sekmeler)
+            {
+                var secili = Model.Gorunum == sekme.Gorunum;
+                <a asp-action="Index" asp-route-gorunum="@sekme.Gorunum" asp-route-tarih="@TurkceTarih.Iso(Model.Odak)"
+                   class="@(secili ? "secili" : "")" aria-current="@(secili ? "page" : null)">@sekme.Ad</a>
+            }
+        </nav>
+
+        <div class="gezinti">
+            <a class="gezinti-bugun" asp-action="Index" asp-route-gorunum="@Model.Gorunum">Bugün</a>
+            <a class="btn btn-ikon" asp-action="Index" asp-route-gorunum="@Model.Gorunum" asp-route-tarih="@TurkceTarih.Iso(Model.Onceki)"
+               aria-label="Önceki @adimAdi"><i class="bi bi-chevron-left"></i></a>
+            <span class="gezinti-baslik">@Model.GezintiBasligi</span>
+            <a class="btn btn-ikon" asp-action="Index" asp-route-gorunum="@Model.Gorunum" asp-route-tarih="@TurkceTarih.Iso(Model.Sonraki)"
+               aria-label="Sonraki @adimAdi"><i class="bi bi-chevron-right"></i></a>
+        </div>
+    </div>
+
+    <div id="bugunUyari" class="form-uyari mb-3" role="alert" hidden="@(hata is null)">@hata</div>
+
+    <div class="bugun-duzen">
+        <div class="bugun-ana">
+            @switch (Model.Gorunum)
+            {
+                case Gorunum.Hafta:
+                    <partial name="_HaftaGorunumu" />
+                    break;
+                case Gorunum.Ay:
+                    <partial name="_AyGorunumu" />
+                    break;
+                default:
+                    <partial name="_GunGorunumu" />
+                    break;
+            }
+        </div>
+
+        <aside class="bugun-yan">
+            <partial name="_TakvimKarti" />
+            <partial name="_YaklasanEtkinlikler" />
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/bugun.js" asp-append-version="true"></script>
+}
