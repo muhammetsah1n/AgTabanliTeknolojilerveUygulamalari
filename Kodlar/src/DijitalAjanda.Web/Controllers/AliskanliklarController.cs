@@ -13,7 +13,7 @@ public class AliskanliklarController : Controller
         {
             Baslik = "Alışkanlıklar",
             Ikon = "bi-graph-up-arrow",
-            PlanlananHafta = 6,
+            PlanlananHafta = 5,
             Aciklama = "Alışkanlıkların ve günlük su tüketiminin takip edildiği sayfa.",
             Ozellikler = new()
             {

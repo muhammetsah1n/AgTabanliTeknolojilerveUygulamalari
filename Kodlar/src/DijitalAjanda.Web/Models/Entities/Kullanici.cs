@@ -20,7 +20,6 @@ public class Kullanici : IdentityUser
 
     public bool AktifMi { get; set; } = true;
 
-    public ICollection<Kategori> Kategoriler { get; set; } = new List<Kategori>();
     public ICollection<Gorev> Gorevler { get; set; } = new List<Gorev>();
     public ICollection<Etkinlik> Etkinlikler { get; set; } = new List<Etkinlik>();
     public ICollection<Not> Notlar { get; set; } = new List<Not>();

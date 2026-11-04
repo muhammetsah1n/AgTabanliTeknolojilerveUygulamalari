@@ -60,13 +60,13 @@ public class MaddeServisi : IMaddeServisi
         return silinen > 0;
     }
 
-    // ---------- Yapılacaklar (son tarihi o gün olan görevler) ----------
+    // ---------- Yapılacaklar ----------
 
     public async Task<int> YapilacakEkleAsync(string kullaniciId, DateOnly tarih, string baslik)
     {
-        // Kanban panosunda "Yapılacak" sütununun sonuna eklenir
+        // O günün listesinin sonuna eklenir
         var sonSira = await _db.Gorevler
-            .Where(g => g.KullaniciId == kullaniciId && g.Durum == GorevDurumu.Yapilacak)
+            .Where(g => g.KullaniciId == kullaniciId && g.SonTarih == tarih)
             .MaxAsync(g => (int?)g.Sira) ?? 0;
 
         var gorev = new Gorev
@@ -74,7 +74,6 @@ public class MaddeServisi : IMaddeServisi
             KullaniciId = kullaniciId,
             Baslik = baslik.Trim(),
             SonTarih = tarih,
-            Durum = GorevDurumu.Yapilacak,
             Sira = sonSira + 1
         };
         _db.Gorevler.Add(gorev);
@@ -98,7 +97,7 @@ public class MaddeServisi : IMaddeServisi
         if (gorev is null) return false;
 
         // • yapılacak ↔ × bitti
-        gorev.Durum = gorev.Durum == GorevDurumu.Bitti ? GorevDurumu.Yapilacak : GorevDurumu.Bitti;
+        gorev.TamamlandiMi = !gorev.TamamlandiMi;
         await _db.SaveChangesAsync();
         return true;
     }

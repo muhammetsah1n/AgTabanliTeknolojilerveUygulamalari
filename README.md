@@ -2,7 +2,7 @@
 
 # Dijital Akademik Ajanda ve Çalışma Alanı
 
-Görevlerini, etkinliklerini, notlarını ve alışkanlıklarını tek bir yerden yönetebileceğin,
+Notlarını, yapılacaklarını, etkinliklerini ve alışkanlıklarını tek bir yerden yönetebileceğin,
 bullet journal yöntemiyle tasarlanmış ağ tabanlı bir ajanda uygulaması.
 
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet&logoColor=white)
@@ -17,11 +17,11 @@ bullet journal yöntemiyle tasarlanmış ağ tabanlı bir ajanda uygulaması.
 
 ## Ekip — Dreamfire
 
-| Ad Soyad | GitHub |
-|---|---|
-| Yağmur Kalyoncu |  [@Yagmurkalyoncu](https://github.com/Yagmurkalyoncu) |
-| Muhammet Şahin  | [@muhammetsah1n](https://github.com/muhammetsah1n) | 
-| Şahnur Çöğür    | [@sahnurcgr](https://github.com/sahnurcgr) | 
+| Ad Soyad | GitHub | Liderlik |
+|---|---|---|
+| Yağmur Kalyoncu |  [@Yagmurkalyoncu](https://github.com/Yagmurkalyoncu) | Hafta 1–3 |
+| Muhammet Şahin  | [@muhammetsah1n](https://github.com/muhammetsah1n) | Hafta 4–6 |
+| Şahnur Çöğür    | [@sahnurcgr](https://github.com/sahnurcgr) | Hafta 7–9 |
 
 ## Teknolojiler
 
@@ -103,7 +103,7 @@ dotnet ef migrations add DegisiklikAdi --project Kodlar/src/DijitalAjanda.Web -o
 | Rol | Erişim |
 |---|---|
 | Ziyaretçi | Ana sayfa, kayıt, giriş, şifremi unuttum, gizlilik |
-| Kullanici | Bugün, Görevler, Alışkanlıklar ve diğer ajanda sayfaları |
+| Kullanici | Bugün sayfası (kendi not, yapılacak ve etkinlikleri), Alışkanlıklar, Kitaplık ve diğer ajanda sayfaları |
 | Admin | Yönetim paneli (`/Yonetim`) — giriş ekranındaki **Yönetici girişi** sekmesinden |
 
 Yetkisiz erişimler **Erişim engellendi**, olmayan sayfalar ve hatalar **Hata** sayfasına yönlendirilir.
@@ -112,9 +112,8 @@ Yetkisiz erişimler **Erişim engellendi**, olmayan sayfalar ve hatalar **Hata**
 
 | Tablo | İlişki |
 |---|---|
-| AspNetUsers (Kullanici) | 1–N: Kategoriler, Gorevler, Etkinlikler, Notlar, Stickerlar, Aliskanliklar, SuKayitlari, Kitaplar |
-| Kategoriler | 1–N: Gorevler, Etkinlikler |
-| Gorevler | 1–N: AltGorevler |
+| AspNetUsers (Kullanici) | 1–N: Notlar, Gorevler, Etkinlikler, Stickerlar, Aliskanliklar, SuKayitlari, Kitaplar |
+| Notlar, Gorevler, Etkinlikler | Bugün sayfasının not (–), yapılacak (• / ×) ve etkinlik (○) maddeleri |
 | Aliskanliklar | 1–N: AliskanlikKayitlari (aynı gün tek kayıt) |
 | SuKayitlari | Kullanıcı başına günde tek kayıt |
 | SikcaSorulanSorular, IletisimMesajlari | Yönetici panelinden yönetilir |
@@ -125,12 +124,12 @@ Yetkisiz erişimler **Erişim engellendi**, olmayan sayfalar ve hatalar **Hata**
 ProjeDokümanları/            Proje kuralları ve plan belgesi
 Kodlar/
 └── src/DijitalAjanda.Web/
-    ├── Controllers/         Home, Hesap, Bugun, Gorevler, Aliskanliklar, Yonetim
+    ├── Controllers/         Home, Hesap, Bugun, Tema, Aliskanliklar, Yonetim
     ├── Data/                DbContext, roller, seed işlemi, migration'lar
-    ├── Models/              Entities (tablolar) ve ViewModels (form modelleri)
-    ├── Services/            E-posta gönderimi, Türkçe Identity mesajları
-    ├── Views/               Home, Hesap, Shared (layout, header, footer, hata)
-    ├── wwwroot/             CSS, JS ve kütüphaneler
+    ├── Models/              Entities (tablolar) ve ViewModels (Hesap ve Bugun form/sayfa modelleri)
+    ├── Services/            Bugün ve madde servisleri, e-posta, Türkçe Identity mesajları
+    ├── Views/               Home, Hesap, Bugun (gün/hafta/ay), Shared (layout, header, footer, hata)
+    ├── wwwroot/             site.css/js (tema), bugun.css/js ve kütüphaneler
     └── Program.cs
 ```
 
@@ -140,12 +139,12 @@ Kodlar/
 |:---:|---|---|:---:|
 | 1 | Yağmur Kalyoncu | Proje iskeleti, ortak sayfa düzeni, açık/koyu tema, ana sayfa | ✅ |
 | 2 | Yağmur Kalyoncu | Entity'ler, PostgreSQL + migration, kayıt/giriş, şifre sıfırlama, roller, hata sayfaları | ✅ |
-| 3 | Yağmur Kalyoncu | Bugün sayfası (gün/hafta/ay), tanıtım sayfası, responsive tasarım | ⏳ |
-| 4 | Muhammet Şahin | Kategori, görev ve etkinlik CRUD sayfaları | ⏳ |
-| 5 | Muhammet Şahin | Görev Web API + Swagger, Kanban, alt görevler | ⏳ |
-| 6 | Muhammet Şahin | Alışkanlık ve su takibi | ⏳ |
-| 7 | Şahnur Çöğür | Kitaplık, sticker yükleme, Nager.Date harici API | ⏳ |
-| 8 | Şahnur Çöğür | SignalR hatırlatıcılar, Admin paneli, SSS / iletişim | ⏳ |
+| 3 | Yağmur Kalyoncu | Bugün sayfası (gün/hafta/ay; hafta ve ay kutularında ekleme, düzenleme, silme; saat kadranıyla etkinlik ekleme; takvim ve resmi tatiller; yaklaşan etkinlikler), tanıtım sayfası, hesaba kaydedilen tema, responsive düzen | ✅ |
+| 4 | Muhammet Şahin | Yapılacaklar Web API + Swagger, Bugün sayfasının API'ye bağlanması, etkinlik türü / bitiş saati / hatırlatıcı | ⏳ |
+| 5 | Muhammet Şahin | Alışkanlık ve su takibi | ⏳ |
+| 6 | Muhammet Şahin | Kitaplık, sticker yükleme ve sürükleme | ⏳ |
+| 7 | Şahnur Çöğür | Nager.Date harici API, SSS / Bize ulaşın sayfaları | ⏳ |
+| 8 | Şahnur Çöğür | SignalR anlık güncelleme ve hatırlatıcılar, Admin paneli | ⏳ |
 | 9 | Şahnur Çöğür | Testler, Docker ile yayına alma, dokümantasyon | ⏳ |
 
 
