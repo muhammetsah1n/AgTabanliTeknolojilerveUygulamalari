@@ -10,9 +10,7 @@ public class AjandaDbContext : IdentityDbContext<Kullanici>
     {
     }
 
-    public DbSet<Kategori> Kategoriler => Set<Kategori>();
     public DbSet<Gorev> Gorevler => Set<Gorev>();
-    public DbSet<AltGorev> AltGorevler => Set<AltGorev>();
     public DbSet<Etkinlik> Etkinlikler => Set<Etkinlik>();
     public DbSet<Not> Notlar => Set<Not>();
     public DbSet<Sticker> Stickerlar => Set<Sticker>();
@@ -28,30 +26,12 @@ public class AjandaDbContext : IdentityDbContext<Kullanici>
         // Identity tablolarının (AspNetUsers, AspNetRoles...) kurulumu
         base.OnModelCreating(builder);
 
-        builder.Entity<Kategori>(e =>
-        {
-            e.ToTable("Kategoriler");
-            e.HasOne(k => k.Kullanici).WithMany(u => u.Kategoriler)
-                .HasForeignKey(k => k.KullaniciId).OnDelete(DeleteBehavior.Cascade);
-            e.HasIndex(k => new { k.KullaniciId, k.Ad }).IsUnique();
-        });
-
         builder.Entity<Gorev>(e =>
         {
             e.ToTable("Gorevler");
             e.HasOne(g => g.Kullanici).WithMany(u => u.Gorevler)
                 .HasForeignKey(g => g.KullaniciId).OnDelete(DeleteBehavior.Cascade);
-            // Kategori silinince görev kalır, kategorisiz olur
-            e.HasOne(g => g.Kategori).WithMany(k => k.Gorevler)
-                .HasForeignKey(g => g.KategoriId).OnDelete(DeleteBehavior.SetNull);
             e.HasIndex(g => new { g.KullaniciId, g.SonTarih });
-        });
-
-        builder.Entity<AltGorev>(e =>
-        {
-            e.ToTable("AltGorevler");
-            e.HasOne(a => a.Gorev).WithMany(g => g.AltGorevler)
-                .HasForeignKey(a => a.GorevId).OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<Etkinlik>(e =>
@@ -59,8 +39,6 @@ public class AjandaDbContext : IdentityDbContext<Kullanici>
             e.ToTable("Etkinlikler");
             e.HasOne(x => x.Kullanici).WithMany(u => u.Etkinlikler)
                 .HasForeignKey(x => x.KullaniciId).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne(x => x.Kategori).WithMany(k => k.Etkinlikler)
-                .HasForeignKey(x => x.KategoriId).OnDelete(DeleteBehavior.SetNull);
             // Etkinlik saatleri kullanıcının girdiği yerel saat olarak saklanır
             e.Property(x => x.Baslangic).HasColumnType("timestamp without time zone");
             e.Property(x => x.Bitis).HasColumnType("timestamp without time zone");

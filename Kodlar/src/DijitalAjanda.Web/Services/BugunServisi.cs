@@ -124,7 +124,7 @@ public class BugunServisi : IBugunServisi
             .Select(n => new MaddeOge { Id = n.Id, Tur = MaddeTuru.Not, Tarih = n.Tarih, Metin = n.Metin })
             .ToListAsync();
 
-        // Bugün sayfasındaki yapılacaklar, son tarihi o güne denk gelen görevlerdir
+        // Yapılacaklar son tarihlerine göre günlere dağılır
         var yapilacaklar = await _db.Gorevler
             .Where(g => g.KullaniciId == kullaniciId && g.SonTarih >= baslangic && g.SonTarih <= bitis)
             .OrderBy(g => g.Sira).ThenBy(g => g.Id)
@@ -134,7 +134,7 @@ public class BugunServisi : IBugunServisi
                 Tur = MaddeTuru.Yapilacak,
                 Tarih = g.SonTarih!.Value,
                 Metin = g.Baslik,
-                Bitti = g.Durum == GorevDurumu.Bitti
+                Bitti = g.TamamlandiMi
             })
             .ToListAsync();
 

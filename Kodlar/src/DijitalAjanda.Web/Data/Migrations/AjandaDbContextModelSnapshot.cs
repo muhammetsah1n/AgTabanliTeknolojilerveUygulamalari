@@ -82,32 +82,6 @@ namespace DijitalAjanda.Web.Data.Migrations
                     b.ToTable("AliskanlikKayitlari", (string)null);
                 });
 
-            modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.AltGorev", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Baslik")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<int>("GorevId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("TamamlandiMi")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GorevId");
-
-                    b.ToTable("AltGorevler", (string)null);
-                });
-
             modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Etkinlik", b =>
                 {
                     b.Property<int>("Id")
@@ -130,9 +104,6 @@ namespace DijitalAjanda.Web.Data.Migrations
                     b.Property<int?>("HatirlaticiDk")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("KategoriId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("KullaniciId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -141,8 +112,6 @@ namespace DijitalAjanda.Web.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("KategoriId");
 
                     b.HasIndex("KullaniciId", "Baslangic");
 
@@ -157,20 +126,10 @@ namespace DijitalAjanda.Web.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Aciklama")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
                     b.Property<string>("Baslik")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
-
-                    b.Property<int>("Durum")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("KategoriId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("KullaniciId")
                         .IsRequired()
@@ -179,18 +138,16 @@ namespace DijitalAjanda.Web.Data.Migrations
                     b.Property<DateTime>("OlusturmaTarihi")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Oncelik")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Sira")
                         .HasColumnType("integer");
 
                     b.Property<DateOnly?>("SonTarih")
                         .HasColumnType("date");
 
-                    b.HasKey("Id");
+                    b.Property<bool>("TamamlandiMi")
+                        .HasColumnType("boolean");
 
-                    b.HasIndex("KategoriId");
+                    b.HasKey("Id");
 
                     b.HasIndex("KullaniciId", "SonTarih");
 
@@ -232,36 +189,6 @@ namespace DijitalAjanda.Web.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("IletisimMesajlari", (string)null);
-                });
-
-            modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Kategori", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Ad")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("KullaniciId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Renk")
-                        .IsRequired()
-                        .HasMaxLength(7)
-                        .HasColumnType("character varying(7)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("KullaniciId", "Ad")
-                        .IsUnique();
-
-                    b.ToTable("Kategoriler", (string)null);
                 });
 
             modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Kitap", b =>
@@ -662,57 +589,21 @@ namespace DijitalAjanda.Web.Data.Migrations
                     b.Navigation("Aliskanlik");
                 });
 
-            modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.AltGorev", b =>
-                {
-                    b.HasOne("DijitalAjanda.Web.Models.Entities.Gorev", "Gorev")
-                        .WithMany("AltGorevler")
-                        .HasForeignKey("GorevId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Gorev");
-                });
-
             modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Etkinlik", b =>
                 {
-                    b.HasOne("DijitalAjanda.Web.Models.Entities.Kategori", "Kategori")
-                        .WithMany("Etkinlikler")
-                        .HasForeignKey("KategoriId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("DijitalAjanda.Web.Models.Entities.Kullanici", "Kullanici")
                         .WithMany("Etkinlikler")
                         .HasForeignKey("KullaniciId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Kategori");
 
                     b.Navigation("Kullanici");
                 });
 
             modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Gorev", b =>
                 {
-                    b.HasOne("DijitalAjanda.Web.Models.Entities.Kategori", "Kategori")
-                        .WithMany("Gorevler")
-                        .HasForeignKey("KategoriId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("DijitalAjanda.Web.Models.Entities.Kullanici", "Kullanici")
                         .WithMany("Gorevler")
-                        .HasForeignKey("KullaniciId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Kategori");
-
-                    b.Navigation("Kullanici");
-                });
-
-            modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Kategori", b =>
-                {
-                    b.HasOne("DijitalAjanda.Web.Models.Entities.Kullanici", "Kullanici")
-                        .WithMany("Kategoriler")
                         .HasForeignKey("KullaniciId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -820,18 +711,6 @@ namespace DijitalAjanda.Web.Data.Migrations
                     b.Navigation("Kayitlar");
                 });
 
-            modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Gorev", b =>
-                {
-                    b.Navigation("AltGorevler");
-                });
-
-            modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Kategori", b =>
-                {
-                    b.Navigation("Etkinlikler");
-
-                    b.Navigation("Gorevler");
-                });
-
             modelBuilder.Entity("DijitalAjanda.Web.Models.Entities.Kullanici", b =>
                 {
                     b.Navigation("Aliskanliklar");
@@ -839,8 +718,6 @@ namespace DijitalAjanda.Web.Data.Migrations
                     b.Navigation("Etkinlikler");
 
                     b.Navigation("Gorevler");
-
-                    b.Navigation("Kategoriler");
 
                     b.Navigation("Kitaplar");
 

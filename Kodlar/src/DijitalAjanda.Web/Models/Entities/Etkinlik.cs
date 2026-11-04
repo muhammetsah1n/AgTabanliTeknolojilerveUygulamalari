@@ -10,9 +10,6 @@ public class Etkinlik
     public string KullaniciId { get; set; } = string.Empty;
     public Kullanici? Kullanici { get; set; }
 
-    public int? KategoriId { get; set; }
-    public Kategori? Kategori { get; set; }
-
     [Required, StringLength(150)]
     public string Baslik { get; set; } = string.Empty;
 

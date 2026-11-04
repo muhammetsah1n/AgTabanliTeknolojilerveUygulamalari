@@ -1,19 +1,5 @@
 namespace DijitalAjanda.Web.Models.Entities;
 
-public enum GorevDurumu
-{
-    Yapilacak = 0,
-    DevamEdiyor = 1,
-    Bitti = 2
-}
-
-public enum Oncelik
-{
-    Dusuk = 0,
-    Orta = 1,
-    Yuksek = 2
-}
-
 public enum EtkinlikTuru
 {
     Etkinlik = 0,

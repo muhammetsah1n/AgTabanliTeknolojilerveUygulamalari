@@ -13,8 +13,8 @@ public class HomeController : Controller
         {
             new() { Baslik = "Bugün Sayfası", Ikon = "bi-journal-check", RenkSinifi = "renk-is",
                     Aciklama = "Gününü bullet journal gibi yaz; haftanı ve ayını aynı defterde gör." },
-            new() { Baslik = "Görev ve Etkinlik Takibi", Ikon = "bi-kanban", RenkSinifi = "renk-saglik",
-                    Aciklama = "Kategorilere ayır, Kanban panosunda sürükle, ilerlemeyi takip et." },
+            new() { Baslik = "Takvim ve Hatırlatıcılar", Ikon = "bi-calendar-event", RenkSinifi = "renk-saglik",
+                    Aciklama = "Etkinliklerini saatiyle ekle, resmi tatilleri takvimde gör, zamanı gelince hatırlatılsın." },
             new() { Baslik = "Alışkanlık ve Su Takibi", Ikon = "bi-droplet-half", RenkSinifi = "renk-kisisel",
                     Aciklama = "Alışkanlıklarını işaretle, serini koru, günlük su hedefini bardak bardak doldur." },
             new() { Baslik = "Kitaplık", Ikon = "bi-bookshelf", RenkSinifi = "renk-sosyal",
