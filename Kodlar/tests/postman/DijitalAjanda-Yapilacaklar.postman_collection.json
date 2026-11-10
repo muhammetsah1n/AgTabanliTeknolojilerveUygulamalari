@@ -1,0 +1,329 @@
+{
+  "info": {
+    "name": "Dijital Ajanda – Yapılacaklar API",
+    "description": "/api/yapilacaklar Web API'sinin uçtan uca ve doğrulama testleri.\n\nKullanım: Uygulamayı çalıştırın (http://localhost:5211), koleksiyon değişkenlerinden `email` ve `sifre` alanlarına kayıtlı bir kullanıcı yazın (yönetici hesabı için `girisTuru` = Yonetici), sonra koleksiyonu Runner ile sırayla çalıştırın. İlk istek giriş yapar; oturum çerezi Postman'in çerez kutusunda tutulur ve sonraki isteklerde otomatik gönderilir.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5211" },
+    { "key": "email", "value": "kullanici@ornek.com" },
+    { "key": "sifre", "value": "sifre123" },
+    { "key": "girisTuru", "value": "Kullanici" },
+    { "key": "tarih", "value": "2026-11-09" },
+    { "key": "yapilacakId", "value": "" },
+    { "key": "girisBelirteci", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0 - Giriş yap (oturum çerezi alınır)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Giriş formundaki anti-forgery belirteci alınır (çerezi Postman saklar)",
+              "pm.sendRequest(pm.collectionVariables.get('baseUrl') + '/Hesap/Giris', function (hata, yanit) {",
+              "    const eslesme = /name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"/.exec(yanit.text());",
+              "    pm.collectionVariables.set('girisBelirteci', eslesme ? eslesme[1] : '');",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Giriş başarılı (giriş sayfasına geri dönülmedi)', function () {",
+              "    pm.response.to.have.status(302);",
+              "    pm.expect(pm.response.headers.get('Location') || '').to.not.include('/Hesap/Giris');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "protocolProfileBehavior": { "followRedirects": false },
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "Email", "value": "{{email}}" },
+            { "key": "Sifre", "value": "{{sifre}}" },
+            { "key": "Tur", "value": "{{girisTuru}}" },
+            { "key": "__RequestVerificationToken", "value": "{{girisBelirteci}}" }
+          ]
+        },
+        "url": "{{baseUrl}}/Hesap/Giris"
+      }
+    },
+    {
+      "name": "1 - POST yapılacak ekle",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created ve Location başlığı', function () {",
+              "    pm.response.to.have.status(201);",
+              "    pm.expect(pm.response.headers.get('Location')).to.match(/\\/api\\/yapilacaklar\\/\\d+$/);",
+              "});",
+              "const y = pm.response.json();",
+              "pm.test('Başlık kırpılmış, tarih doğru, tamamlanmamış', function () {",
+              "    pm.expect(y.baslik).to.eql('Postman deneme');",
+              "    pm.expect(y.tarih).to.eql(pm.collectionVariables.get('tarih'));",
+              "    pm.expect(y.tamamlandiMi).to.be.false;",
+              "    pm.expect(y.sira).to.be.above(0);",
+              "});",
+              "pm.collectionVariables.set('yapilacakId', y.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"baslik\": \"  Postman deneme  \",\n  \"tarih\": \"{{tarih}}\"\n}" },
+        "url": "{{baseUrl}}/api/yapilacaklar"
+      }
+    },
+    {
+      "name": "2 - GET güne göre listele",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 ve eklenen madde listede', function () {",
+              "    pm.response.to.have.status(200);",
+              "    const liste = pm.response.json();",
+              "    pm.expect(liste).to.be.an('array');",
+              "    pm.expect(liste.map(y => y.id)).to.include(Number(pm.collectionVariables.get('yapilacakId')));",
+              "    liste.forEach(y => pm.expect(y.tarih).to.eql(pm.collectionVariables.get('tarih')));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/yapilacaklar?tarih={{tarih}}" }
+    },
+    {
+      "name": "3 - GET tek yapılacak",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 ve doğru kayıt', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('yapilacakId')));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/yapilacaklar/{{yapilacakId}}" }
+    },
+    {
+      "name": "4 - PATCH bitti olarak işaretle",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 ve tamamlandı', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json().tamamlandiMi).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{ \"tamamlandiMi\": true }" },
+        "url": "{{baseUrl}}/api/yapilacaklar/{{yapilacakId}}/tamamla"
+      }
+    },
+    {
+      "name": "5 - PATCH gövdesiz (durumu tersine çevirir)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 ve yeniden yapılacak', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json().tamamlandiMi).to.be.false;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": { "method": "PATCH", "header": [], "url": "{{baseUrl}}/api/yapilacaklar/{{yapilacakId}}/tamamla" }
+    },
+    {
+      "name": "6 - PUT güncelle",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 ve bütün alanlar güncellendi', function () {",
+              "    pm.response.to.have.status(200);",
+              "    const y = pm.response.json();",
+              "    pm.expect(y.baslik).to.eql('Postman güncellendi');",
+              "    pm.expect(y.tamamlandiMi).to.be.true;",
+              "    pm.expect(y.tarih).to.eql(pm.collectionVariables.get('tarih'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"baslik\": \"Postman güncellendi\",\n  \"tarih\": \"{{tarih}}\",\n  \"tamamlandiMi\": true\n}" },
+        "url": "{{baseUrl}}/api/yapilacaklar/{{yapilacakId}}"
+      }
+    },
+    {
+      "name": "Doğrulama",
+      "item": [
+        {
+          "name": "Boş başlık → 400",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 ve Baslik hatası', function () {",
+            "    pm.response.to.have.status(400);",
+            "    pm.expect(pm.response.json().errors.Baslik[0]).to.eql('Yapılacak boş olamaz.');",
+            "});"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"baslik\": \"   \", \"tarih\": \"{{tarih}}\" }" },
+            "url": "{{baseUrl}}/api/yapilacaklar"
+          }
+        },
+        {
+          "name": "Tarih eksik → 400",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 ve Tarih hatası', function () {",
+            "    pm.response.to.have.status(400);",
+            "    pm.expect(pm.response.json().errors.Tarih[0]).to.eql('Tarih seçin.');",
+            "});"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"baslik\": \"Tarihsiz\" }" },
+            "url": "{{baseUrl}}/api/yapilacaklar"
+          }
+        },
+        {
+          "name": "150 karakterden uzun başlık → 400",
+          "event": [
+            { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+              "pm.variables.set('uzunBaslik', 'a'.repeat(151));"
+            ] } },
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('400 ve uzunluk hatası', function () {",
+              "    pm.response.to.have.status(400);",
+              "    pm.expect(pm.response.json().errors.Baslik[0]).to.include('150');",
+              "});"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"baslik\": \"{{uzunBaslik}}\", \"tarih\": \"{{tarih}}\" }" },
+            "url": "{{baseUrl}}/api/yapilacaklar"
+          }
+        },
+        {
+          "name": "Geçersiz tarih biçimi → 400",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 ve tarih alanı hatası', function () {",
+            "    pm.response.to.have.status(400);",
+            "    pm.expect(pm.response.json().errors).to.have.property('tarih');",
+            "});"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"baslik\": \"Bozuk tarih\", \"tarih\": \"31-31-2026\" }" },
+            "url": "{{baseUrl}}/api/yapilacaklar"
+          }
+        },
+        {
+          "name": "PUT tamamlanma durumu eksik → 400",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('400 ve TamamlandiMi hatası', function () {",
+            "    pm.response.to.have.status(400);",
+            "    pm.expect(pm.response.json().errors).to.have.property('TamamlandiMi');",
+            "});"
+          ] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"baslik\": \"Eksik\", \"tarih\": \"{{tarih}}\" }" },
+            "url": "{{baseUrl}}/api/yapilacaklar/{{yapilacakId}}"
+          }
+        },
+        {
+          "name": "Olmayan kayıt → 404",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('404 ve Türkçe başlık', function () {",
+            "    pm.response.to.have.status(404);",
+            "    pm.expect(pm.response.json().title).to.eql('Yapılacak bulunamadı.');",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/yapilacaklar/2147483647" }
+        }
+      ]
+    },
+    {
+      "name": "7 - DELETE sil",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('204 No Content', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/api/yapilacaklar/{{yapilacakId}}" }
+    },
+    {
+      "name": "8 - GET silinen kayıt → 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('404 Not Found', function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/yapilacaklar/{{yapilacakId}}" }
+    }
+  ]
+}
