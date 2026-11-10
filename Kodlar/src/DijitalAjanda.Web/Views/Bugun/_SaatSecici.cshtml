@@ -6,12 +6,12 @@
     var saatler = new[] { 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 }
 
-@* Etkinlikler sütunundaki saat düğmesine basınca açılan yuvarlak kadran *@
+@* Etkinlik formundaki başlangıç ve bitiş saati düğmelerine basınca açılan yuvarlak kadran *@
 <div class="saat-penceresi" role="dialog" aria-label="Etkinlik saati seç" hidden
      data-saat="@Model.Hour" data-dakika="@Model.Minute">
     <div class="saat-pencere-ust">
-        <span>Etkinlik saati</span>
-        <strong data-saat-metni>@TurkceTarih.SaatMetni(Model)</strong>
+        <span data-kadran-baslik>Etkinlik saati</span>
+        <strong data-kadran-metni>@TurkceTarih.SaatMetni(Model)</strong>
     </div>
     <div class="kadran">
         <span class="akrep" data-akrep aria-hidden="true"></span>
@@ -34,5 +34,9 @@
             <button type="button" class="cip" data-dakika="@dakika" aria-label="Dakika @dakika.ToString("00")" aria-pressed="false">:@dakika.ToString("00")</button>
         }
     </div>
-    <button type="button" class="saat-tamam" data-saat-kapat>Tamam</button>
+    <div class="cip-satiri iki saat-alt" data-bitis-dugmeleri hidden>
+        <button type="button" class="pencere-vazgec" data-bitis-temizle>Bitiş yok</button>
+        <button type="button" class="pencere-tamam" data-saat-kapat>Tamam</button>
+    </div>
+    <button type="button" class="saat-tamam" data-saat-kapat data-baslangic-tamam>Tamam</button>
 </div>

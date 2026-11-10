@@ -1,0 +1,11 @@
+@model string
+@* Etkinlik türü ikonu: Bootstrap Icons sınıfı ya da ikon setinde olmayan "yemek" (çatal-bıçak) için SVG *@
+@if (Model == "yemek")
+{
+    <svg class="svg-ikon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 21V3c-2.5 1.5-3.5 4-3.5 7 0 2 1.2 3 3.5 3"></path></svg>
+}
+else
+{
+    <i class="bi @Model" aria-hidden="true"></i>
+}

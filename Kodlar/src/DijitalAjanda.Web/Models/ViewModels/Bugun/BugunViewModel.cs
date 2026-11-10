@@ -1,3 +1,5 @@
+using DijitalAjanda.Web.Models.Entities;
+
 namespace DijitalAjanda.Web.Models.ViewModels.Bugun;
 
 public enum Gorunum
@@ -23,6 +25,12 @@ public class MaddeOge
     public string Metin { get; set; } = string.Empty;
     public bool Bitti { get; set; }
     public TimeOnly? Saat { get; set; }
+
+    // Yalnızca etkinliklerde
+    public EtkinlikTuru EtkinlikTuru { get; set; } = EtkinlikTuru.Etkinlik;
+    public string? OzelTur { get; set; }
+    public TimeOnly? BitisSaati { get; set; }
+    public int? HatirlaticiDk { get; set; }
 
     // Bullet journal işareti: – not, • yapılacak, × bitti, ○ etkinlik
     public string Isaret => Tur switch

@@ -15,6 +15,10 @@ public class Etkinlik
 
     public EtkinlikTuru Tur { get; set; } = EtkinlikTuru.Etkinlik;
 
+    // Tur = Ozel ise kullanıcının yazdığı tür adı ("Kendi türün…"), diğer türlerde boş
+    [StringLength(40)]
+    public string? OzelTur { get; set; }
+
     public DateTime Baslangic { get; set; }
 
     public DateTime? Bitis { get; set; }

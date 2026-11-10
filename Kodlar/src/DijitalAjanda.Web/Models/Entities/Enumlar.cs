@@ -4,7 +4,14 @@ public enum EtkinlikTuru
 {
     Etkinlik = 0,
     Randevu = 1,
-    Toplanti = 2
+    Toplanti = 2,
+    Gorev = 3,
+    DogumGunu = 4,
+    Yemek = 5,
+    Alisveris = 6,
+
+    // Kullanıcının kendi yazdığı tür; adı Etkinlik.OzelTur alanında
+    Ozel = 7
 }
 
 public enum KitapTuru
