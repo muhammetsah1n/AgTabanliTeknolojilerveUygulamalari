@@ -23,6 +23,7 @@
 <div class="madde-kap">
     <button type="button" class="madde @turSinifi @(Model.Bitti ? "bitti" : "")" data-madde
             data-tur="@Model.Tur" data-id="@Model.Id" data-metin="@Model.Metin" data-saat="@saat"
+            data-tarih="@TurkceTarih.Iso(Model.Tarih)" data-bitti="@(Model.Bitti ? "true" : "false")"
             data-kisa="@(ayMi ? "1" : null)" aria-label="@turAdi, düzenle: @Model.Metin">
         <span class="madde-metin">@gosterilen</span>
         @if (!ayMi && saat is not null)

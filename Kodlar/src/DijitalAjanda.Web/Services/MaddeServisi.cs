@@ -60,66 +60,20 @@ public class MaddeServisi : IMaddeServisi
         return silinen > 0;
     }
 
-    // ---------- Yapılacaklar ----------
-
-    public async Task<int> YapilacakEkleAsync(string kullaniciId, DateOnly tarih, string baslik)
-    {
-        // O günün listesinin sonuna eklenir
-        var sonSira = await _db.Gorevler
-            .Where(g => g.KullaniciId == kullaniciId && g.SonTarih == tarih)
-            .MaxAsync(g => (int?)g.Sira) ?? 0;
-
-        var gorev = new Gorev
-        {
-            KullaniciId = kullaniciId,
-            Baslik = baslik.Trim(),
-            SonTarih = tarih,
-            Sira = sonSira + 1
-        };
-        _db.Gorevler.Add(gorev);
-        await _db.SaveChangesAsync();
-        return gorev.Id;
-    }
-
-    public async Task<bool> YapilacakGuncelleAsync(string kullaniciId, int id, string baslik)
-    {
-        var gorev = await _db.Gorevler.FirstOrDefaultAsync(g => g.Id == id && g.KullaniciId == kullaniciId);
-        if (gorev is null) return false;
-
-        gorev.Baslik = baslik.Trim();
-        await _db.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> YapilacakDurumDegistirAsync(string kullaniciId, int id)
-    {
-        var gorev = await _db.Gorevler.FirstOrDefaultAsync(g => g.Id == id && g.KullaniciId == kullaniciId);
-        if (gorev is null) return false;
-
-        // • yapılacak ↔ × bitti
-        gorev.TamamlandiMi = !gorev.TamamlandiMi;
-        await _db.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> YapilacakSilAsync(string kullaniciId, int id)
-    {
-        var silinen = await _db.Gorevler
-            .Where(g => g.Id == id && g.KullaniciId == kullaniciId)
-            .ExecuteDeleteAsync();
-        return silinen > 0;
-    }
-
     // ---------- Etkinlikler ----------
 
-    public async Task<int> EtkinlikEkleAsync(string kullaniciId, string baslik, DateTime baslangic)
+    public async Task<int> EtkinlikEkleAsync(string kullaniciId, string baslik, DateTime baslangic,
+        EtkinlikTuru tur = EtkinlikTuru.Etkinlik, DateTime? bitis = null, int? hatirlaticiDk = null, string? ozelTur = null)
     {
         var etkinlik = new Etkinlik
         {
             KullaniciId = kullaniciId,
             Baslik = baslik.Trim(),
-            Tur = EtkinlikTuru.Etkinlik,
-            Baslangic = baslangic
+            Tur = tur,
+            OzelTur = tur == EtkinlikTuru.Ozel ? ozelTur?.Trim() : null,
+            Baslangic = baslangic,
+            Bitis = bitis,
+            HatirlaticiDk = hatirlaticiDk
         };
         _db.Etkinlikler.Add(etkinlik);
         await _db.SaveChangesAsync();

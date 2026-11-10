@@ -108,6 +108,10 @@ namespace DijitalAjanda.Web.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("OzelTur")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<int>("Tur")
                         .HasColumnType("integer");
 

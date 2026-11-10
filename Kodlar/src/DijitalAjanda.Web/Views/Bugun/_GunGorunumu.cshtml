@@ -1,4 +1,5 @@
 @model BugunViewModel
+@using DijitalAjanda.Web.Models.Entities
 @{
     var tarih = TurkceTarih.Iso(Model.Odak);
     var onerilenSaat = (TimeOnly)ViewData["OnerilenSaat"]!;
@@ -16,7 +17,7 @@
                 <span class="bugun-rozet">Bugün</span>
             }
         </div>
-        <span class="tamamlanma">%@Model.TamamlanmaYuzdesi tamamlandı</span>
+        <span class="tamamlanma" data-tamamlanma>%@Model.TamamlanmaYuzdesi tamamlandı</span>
     </div>
 
     <div class="sutunlar">
@@ -55,34 +56,38 @@
             <button type="button" class="yeni-madde" data-not-ekle><i class="bi bi-plus-lg"></i>Yeni madde</button>
         </div>
 
-        @* ---------- Yapılacaklar ---------- *@
-        <div class="sutun sutun-yapilacak">
+        @* ---------- Yapılacaklar ----------
+           bugun.js bu sütunu /api/yapilacaklar Web API'sine bağlar: ekleme, işaretleme, düzenleme (metne tıklayınca)
+           ve silme sayfa yenilenmeden yapılır. Formlar yalnızca JavaScript kapalıyken gönderilir. *@
+        <div class="sutun sutun-yapilacak" data-yapilacaklar data-tarih="@tarih">
             <div class="sutun-baslik">
                 <h3><i class="bi bi-check2-square"></i>Yapılacaklar</h3>
-                <span>@Model.AcikYapilacakSayisi açık</span>
+                <span data-acik-sayisi>@Model.AcikYapilacakSayisi açık</span>
             </div>
 
-            <ul class="madde-satirlari">
+            <ul class="madde-satirlari" data-yapilacak-listesi>
                 @foreach (var yapilacak in Model.Yapilacaklar)
                 {
-                    <li class="@(yapilacak.Bitti ? "bitti" : "")">
+                    <li class="@(yapilacak.Bitti ? "bitti" : "")" data-yapilacak data-id="@yapilacak.Id"
+                        data-bitti="@(yapilacak.Bitti ? "true" : "false")">
                         <form asp-action="YapilacakDegistir" method="post">
                             <partial name="_SayfaKonumu" />
                             <input type="hidden" name="Id" value="@yapilacak.Id" />
-                            <button type="submit" class="isaret-dugme"
+                            <button type="submit" class="isaret-dugme" data-yapilacak-isaretle
                                     aria-label="@(yapilacak.Bitti ? "Yapılacak yap" : "Bitti olarak işaretle"): @yapilacak.Metin">@yapilacak.Isaret</button>
                         </form>
-                        <span class="satir-metin">@yapilacak.Metin</span>
+                        <button type="button" class="satir-metin satir-duzenle" data-yapilacak-duzenle
+                                aria-label="Düzenle: @yapilacak.Metin">@yapilacak.Metin</button>
                         <form asp-action="YapilacakSil" method="post">
                             <partial name="_SayfaKonumu" />
                             <input type="hidden" name="Id" value="@yapilacak.Id" />
-                            <button type="submit" class="madde-sil" aria-label="Sil: @yapilacak.Metin"><i class="bi bi-trash3"></i></button>
+                            <button type="submit" class="madde-sil" data-yapilacak-sil aria-label="Sil: @yapilacak.Metin"><i class="bi bi-trash3"></i></button>
                         </form>
                     </li>
                 }
             </ul>
 
-            <form asp-action="YapilacakEkle" method="post" class="ekle-satir">
+            <form asp-action="YapilacakEkle" method="post" class="ekle-satir" data-yapilacak-ekle>
                 <partial name="_SayfaKonumu" />
                 <input type="hidden" name="Tarih" value="@tarih" />
                 <label class="visually-hidden" for="yeniYapilacak">Yeni yapılacak</label>
@@ -103,8 +108,20 @@
                 @foreach (var etkinlik in Model.Etkinlikler)
                 {
                     <div class="etkinlik-satir">
-                        <span class="saat-rozet">@(etkinlik.Saat is TimeOnly saat ? TurkceTarih.SaatMetni(saat) : "")</span>
-                        <span class="satir-metin kalin">@etkinlik.Metin</span>
+                        <span class="saat-rozet">
+                            @(etkinlik.Saat is TimeOnly saat ? TurkceTarih.SaatMetni(saat) : "")
+                            @if (etkinlik.BitisSaati is TimeOnly bitis)
+                            {
+                                <small aria-label="bitiş @TurkceTarih.SaatMetni(bitis)">@TurkceTarih.SaatMetni(bitis)</small>
+                            }
+                        </span>
+                        <span class="etkinlik-bilgi">
+                            <span class="satir-metin kalin">@etkinlik.Metin</span>
+                            @if (EtkinlikSecenekleri.Ayrinti(etkinlik.EtkinlikTuru, etkinlik.OzelTur, etkinlik.HatirlaticiDk) is string ayrinti)
+                            {
+                                <small>@ayrinti</small>
+                            }
+                        </span>
                         <form asp-action="EtkinlikSil" method="post">
                             <partial name="_SayfaKonumu" />
                             <input type="hidden" name="Id" value="@etkinlik.Id" />
@@ -118,26 +135,41 @@
                 }
             </div>
 
-            <form asp-action="EtkinlikEkle" method="post" class="etkinlik-ekle">
+            @* Etkinlikler paneli tasarımı: tarih | saat, tür | bitiş, hatırlatma. Seçimler açılır pencerelerde yapılır,
+               değerler gizli alanlarla gönderilir (bugun.js). *@
+            <form asp-action="EtkinlikEkle" method="post" class="etkinlik-ekle" data-etkinlik-ekle>
                 <partial name="_SayfaKonumu" />
                 <input type="hidden" name="Tarih" value="@tarih" data-tarih-girdi />
                 <input type="hidden" name="Saat" value="@TurkceTarih.SaatMetni(onerilenSaat)" data-saat-girdi />
+                <input type="hidden" name="BitisSaati" value="" data-bitis-girdi />
+                <input type="hidden" name="Tur" value="@EtkinlikTuru.Etkinlik" data-tur-girdi />
+                <input type="hidden" name="OzelTur" value="" data-ozel-tur-girdi />
+                <input type="hidden" name="HatirlaticiDk" value="" data-hatirlatici-girdi />
 
                 <label for="yeniEtkinlik">Yeni etkinlik</label>
                 <input id="yeniEtkinlik" name="Baslik" class="girdi-kart" placeholder="etkinlik adı…"
                        maxlength="150" required autocomplete="off" />
-                <div class="secim-satiri">
-                    <button type="button" class="secim-dugme genis" data-tarih-ac aria-expanded="false"
+
+                <div class="secim-izgara">
+                    <button type="button" class="secim-dugme" data-tarih-ac aria-expanded="false"
                             aria-label="Tarih seç, seçili @TurkceTarih.KisaTarih(Model.Odak)">
-                        <i class="bi bi-calendar3"></i><span data-tarih-metni>@TurkceTarih.KisaTarih(Model.Odak)</span>
+                        <i class="bi bi-calendar3" aria-hidden="true"></i><span data-tarih-metni>@TurkceTarih.KisaTarih(Model.Odak)</span>
                     </button>
-                    <div class="saat-kap">
-                        <button type="button" class="secim-dugme" data-saat-ac aria-expanded="false"
-                                aria-label="Saat seç, seçili @TurkceTarih.SaatMetni(onerilenSaat)">
-                            <i class="bi bi-clock"></i><span data-saat-metni>@TurkceTarih.SaatMetni(onerilenSaat)</span>
-                        </button>
-                        <partial name="_SaatSecici" model="onerilenSaat" />
-                    </div>
+                    <button type="button" class="secim-dugme" data-saat-ac aria-expanded="false" aria-haspopup="dialog"
+                            aria-label="Başlangıç saati seç, seçili @TurkceTarih.SaatMetni(onerilenSaat)">
+                        <i class="bi bi-clock" aria-hidden="true"></i><span data-saat-metni>@TurkceTarih.SaatMetni(onerilenSaat)</span>
+                    </button>
+                    <button type="button" class="secim-dugme secim-liste" data-tur-ac aria-expanded="false" aria-haspopup="listbox"
+                            aria-label="Etkinlik türü: Etkinlik">
+                        <span class="secim-ikon" data-tur-ikonu aria-hidden="true"><i class="bi bi-tag"></i></span>
+                        <span class="secim-metin" data-tur-metni>Etkinlik</span>
+                        <i class="bi bi-chevron-down secim-ok" aria-hidden="true"></i>
+                    </button>
+                    @* Bitiş seçilmediyse düğmede yalnızca görsel olarak 23:00 yazar; seçilene kadar forma değer yazılmaz *@
+                    <button type="button" class="secim-dugme" data-bitis-ac aria-expanded="false" aria-haspopup="dialog"
+                            aria-label="Bitiş saati seç (isteğe bağlı), seçilmedi">
+                        <i class="bi bi-hourglass-split" aria-hidden="true"></i><span data-bitis-metni>23:00</span>
+                    </button>
                 </div>
 
                 <div class="tarih-secici" hidden>
@@ -148,6 +180,59 @@
                     </div>
                     <div class="takvim-izgara kucuk" data-takvim-izgara></div>
                 </div>
+
+                <button type="button" class="secim-dugme secim-liste" data-hatirlatma-ac aria-expanded="false" aria-haspopup="dialog"
+                        aria-label="Hatırlatma: hatırlatma yok">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                    <span class="secim-metin" data-hatirlatma-metni>Hatırlatma yok</span>
+                    <i class="bi bi-chevron-down secim-ok" aria-hidden="true"></i>
+                </button>
+
+                @* ---------- Etkinlik türü penceresi ---------- *@
+                <div class="secim-penceresi tur-penceresi" role="listbox" aria-label="Etkinlik türü" data-tur-penceresi hidden>
+                    @foreach (var tur in EtkinlikSecenekleri.Turler)
+                    {
+                        <button type="button" class="secenek" role="option" data-tur-secenek="@tur.Tur"
+                                aria-selected="@(tur.Tur == EtkinlikTuru.Etkinlik ? "true" : "false")">
+                            <span class="secim-ikon" aria-hidden="true"><partial name="_EtkinlikTuruIkonu" model="tur.Ikon" /></span>@tur.Ad
+                        </button>
+                    }
+                    <label class="secenek secenek-ozel" data-ozel-tur-kutusu title="Kendi türünüzü ekleyin">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        <input type="text" maxlength="40" placeholder="Kendi türün…" title="Kendi türünüzü ekleyin" aria-label="Kendi türünüzü ekleyin (yazıp Enter'a basın)"
+                               autocomplete="off" data-ozel-tur-yaz />
+                    </label>
+                </div>
+
+                @* ---------- Hatırlatma penceresi: kaç × birim ---------- *@
+                <div class="secim-penceresi hatirlatma-penceresi" role="dialog" aria-label="Hatırlatma seç" data-hatirlatma-penceresi hidden>
+                    <button type="button" class="secenek tam" data-hatirlatma-yok>
+                        <i class="bi bi-bell-slash" aria-hidden="true"></i>Hatırlatma yok
+                    </button>
+                    <div class="pencere-baslik" id="hatirlatmaKac">Kaç</div>
+                    <div class="kac-izgara" role="group" aria-labelledby="hatirlatmaKac">
+                        @foreach (var kac in EtkinlikSecenekleri.HatirlaticiKaclari)
+                        {
+                            <button type="button" class="secenek" data-kac="@kac" aria-pressed="false">@kac</button>
+                        }
+                    </div>
+                    <div class="pencere-baslik" id="hatirlatmaBirim">Birim</div>
+                    <div class="birim-izgara" role="group" aria-labelledby="hatirlatmaBirim">
+                        @foreach (var birim in EtkinlikSecenekleri.HatirlaticiBirimleri)
+                        {
+                            <button type="button" class="secenek" data-birim="@birim.Dakika" aria-pressed="false">@birim.Ad</button>
+                        }
+                    </div>
+                    <div class="hatirlatma-ozet" aria-live="polite">
+                        <i class="bi bi-bell" aria-hidden="true"></i><span data-hatirlatma-ozet>Etkinlikten 15 dakika önce</span>
+                    </div>
+                    <div class="pencere-dugmeleri">
+                        <button type="button" class="pencere-vazgec" data-pencere-vazgec>Vazgeç</button>
+                        <button type="button" class="pencere-tamam" data-hatirlatma-tamam>Tamam</button>
+                    </div>
+                </div>
+
+                <partial name="_SaatSecici" model="onerilenSaat" />
 
                 <button type="submit" class="ekle-genis"><i class="bi bi-plus-lg"></i>Etkinlik ekle</button>
                 @if (!string.IsNullOrEmpty(mesaj))

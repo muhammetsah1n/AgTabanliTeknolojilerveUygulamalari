@@ -1,6 +1,9 @@
+using DijitalAjanda.Web.Models.Entities;
+
 namespace DijitalAjanda.Web.Services;
 
-// Bugün sayfasındaki not, yapılacak ve etkinlik maddelerinin eklenmesi, düzenlenmesi ve silinmesi.
+// Bugün sayfasındaki not ve etkinlik maddelerinin eklenmesi, düzenlenmesi ve silinmesi
+// (yapılacaklar IYapilacakServisi'nde).
 // Ekleme işlemleri yeni kaydın numarasını döndürür (sayfa yenilenmeden düzenlenebilsin diye).
 // Güncelleme ve silme işlemleri kayıt bulunamazsa ya da başka kullanıcıya aitse false döner.
 public interface IMaddeServisi
@@ -9,12 +12,10 @@ public interface IMaddeServisi
     Task<bool> NotGuncelleAsync(string kullaniciId, int id, string? metin);
     Task<bool> NotSilAsync(string kullaniciId, int id);
 
-    Task<int> YapilacakEkleAsync(string kullaniciId, DateOnly tarih, string baslik);
-    Task<bool> YapilacakGuncelleAsync(string kullaniciId, int id, string baslik);
-    Task<bool> YapilacakDurumDegistirAsync(string kullaniciId, int id);
-    Task<bool> YapilacakSilAsync(string kullaniciId, int id);
-
-    Task<int> EtkinlikEkleAsync(string kullaniciId, string baslik, DateTime baslangic);
+    // bitis boşsa etkinliğin bitiş saati yok; hatirlaticiDk boşsa hatırlatma yok;
+    // ozelTur yalnızca tur = Ozel iken saklanır
+    Task<int> EtkinlikEkleAsync(string kullaniciId, string baslik, DateTime baslangic,
+        EtkinlikTuru tur = EtkinlikTuru.Etkinlik, DateTime? bitis = null, int? hatirlaticiDk = null, string? ozelTur = null);
     Task<bool> EtkinlikGuncelleAsync(string kullaniciId, int id, string baslik, TimeOnly? saat);
     Task<bool> EtkinlikSilAsync(string kullaniciId, int id);
 }

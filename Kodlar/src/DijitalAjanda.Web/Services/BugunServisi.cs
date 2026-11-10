@@ -140,15 +140,14 @@ public class BugunServisi : IBugunServisi
 
         var ilkAn = baslangic.ToDateTime(TimeOnly.MinValue);
         var sonAn = bitis.AddDays(1).ToDateTime(TimeOnly.MinValue);
-        var etkinlikler = await _db.Etkinlikler
+        var etkinlikler = await _db.Etkinlikler.AsNoTracking()
             .Where(e => e.KullaniciId == kullaniciId && e.Baslangic >= ilkAn && e.Baslangic < sonAn)
             .OrderBy(e => e.Baslangic)
-            .Select(e => new { e.Id, e.Baslik, e.Baslangic })
             .ToListAsync();
 
         return notlar
             .Concat(yapilacaklar)
-            .Concat(etkinlikler.Select(e => EtkinlikMaddesi(e.Id, e.Baslik, e.Baslangic)))
+            .Concat(etkinlikler.Select(EtkinlikMaddesi))
             .ToList();
     }
 
@@ -156,23 +155,28 @@ public class BugunServisi : IBugunServisi
     private async Task<List<MaddeOge>> YaklasanEtkinlikleriGetirAsync(string kullaniciId, DateOnly bugun)
     {
         var gunBasi = bugun.ToDateTime(TimeOnly.MinValue);
-        var etkinlikler = await _db.Etkinlikler
+        var etkinlikler = await _db.Etkinlikler.AsNoTracking()
             .Where(e => e.KullaniciId == kullaniciId && e.Baslangic >= gunBasi)
             .OrderBy(e => e.Baslangic)
             .Take(YaklasanEtkinlikSayisi)
-            .Select(e => new { e.Id, e.Baslik, e.Baslangic })
             .ToListAsync();
 
-        return etkinlikler.Select(e => EtkinlikMaddesi(e.Id, e.Baslik, e.Baslangic)).ToList();
+        return etkinlikler.Select(EtkinlikMaddesi).ToList();
     }
 
-    private static MaddeOge EtkinlikMaddesi(int id, string baslik, DateTime baslangic) => new()
+    private static MaddeOge EtkinlikMaddesi(Etkinlik e) => new()
     {
-        Id = id,
+        Id = e.Id,
         Tur = MaddeTuru.Etkinlik,
-        Tarih = DateOnly.FromDateTime(baslangic),
-        Saat = TimeOnly.FromDateTime(baslangic),
-        Metin = baslik
+        Tarih = DateOnly.FromDateTime(e.Baslangic),
+        Saat = TimeOnly.FromDateTime(e.Baslangic),
+        Metin = e.Baslik,
+        EtkinlikTuru = e.Tur,
+        OzelTur = e.OzelTur,
+        // Ertesi güne taşan bitişler gösterilmez (form aynı gün içinde bitişe izin verir)
+        BitisSaati = e.Bitis is DateTime bitis && DateOnly.FromDateTime(bitis) == DateOnly.FromDateTime(e.Baslangic)
+            ? TimeOnly.FromDateTime(bitis) : null,
+        HatirlaticiDk = e.HatirlaticiDk
     };
 
     private static List<TakvimHucresi> HucreleriOlustur(

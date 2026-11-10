@@ -50,6 +50,28 @@ document.addEventListener("DOMContentLoaded", function () {
         try { return await yanit.json(); } catch (e) { return {}; }
     }
 
+    // Yapılacaklar Web API'sine JSON isteği; hata olursa API'nin doğrulama / sorun mesajını fırlatır
+    async function api(yontem, url, govde) {
+        const secenekler = { method: yontem, headers: { "Accept": "application/json" } };
+        if (govde !== undefined) {
+            secenekler.headers["Content-Type"] = "application/json";
+            secenekler.body = JSON.stringify(govde);
+        }
+        const yanit = await fetch(url, secenekler);
+        if (yanit.status === 401) throw new Error("Oturumun sona ermiş, lütfen yeniden giriş yap.");
+        if (!yanit.ok) {
+            let mesaj = "Kaydedilemedi, lütfen tekrar deneyin.";
+            try {
+                const sorun = await yanit.json();
+                const hatalar = sorun.errors ? Object.values(sorun.errors).flat() : [];
+                mesaj = hatalar[0] || sorun.title || mesaj;
+            } catch (e) { }
+            throw new Error(mesaj);
+        }
+        return yanit.status === 204 ? null : yanit.json();
+    }
+    const yapilacakAdresi = (id) => adres.yapilacakApi + "/" + encodeURIComponent(id);
+
     function imleciSonaAl(alan) {
         const uzunluk = alan.value.length;
         try { alan.setSelectionRange(uzunluk, uzunluk); } catch (e) { }
@@ -71,7 +93,8 @@ document.addEventListener("DOMContentLoaded", function () {
             sessionStorage.removeItem(kaydirmaAnahtari);
         }
     } catch (e) { }
-    sayfa.addEventListener("submit", function () {
+    sayfa.addEventListener("submit", function (e) {
+        if (e.defaultPrevented) return;
         try { sessionStorage.setItem(kaydirmaAnahtari, String(window.scrollY)); } catch (e) { }
     });
 
@@ -149,83 +172,405 @@ document.addEventListener("DOMContentLoaded", function () {
         notlariDuzenle();
     }
 
-    // ---------- Gün: Etkinlikler sütunundaki yuvarlak saat kadranı ----------
+    // ---------- Gün: Yapılacaklar sütunu Web API ile çalışır ----------
+    // Ekleme POST, işaretleme PATCH .../tamamla, düzenleme PUT, silme DELETE (/api/yapilacaklar)
 
-    const saatPenceresi = sayfa.querySelector(".saat-penceresi");
-    if (saatPenceresi) {
-        const saatDugmesi = sayfa.querySelector("[data-saat-ac]");
+    const yapilacakSutunu = sayfa.querySelector("[data-yapilacaklar]");
+    if (yapilacakSutunu) {
+        const liste = yapilacakSutunu.querySelector("[data-yapilacak-listesi]");
+        const acikSayisi = yapilacakSutunu.querySelector("[data-acik-sayisi]");
+        const tamamlanma = sayfa.querySelector("[data-tamamlanma]");
+        const gunTarihi = yapilacakSutunu.dataset.tarih;
+
+        const ozetiGuncelle = function () {
+            const toplam = liste.querySelectorAll("[data-yapilacak]").length;
+            const biten = liste.querySelectorAll('[data-yapilacak][data-bitti="true"]').length;
+            acikSayisi.textContent = (toplam - biten) + " açık";
+            tamamlanma.textContent = "%" + (toplam ? Math.round(100 * biten / toplam) : 0) + " tamamlandı";
+        };
+
+        // Satırı API'nin döndürdüğü yapılacağa göre günceller
+        const satiriCiz = function (li, y) {
+            li.dataset.id = y.id;
+            li.dataset.bitti = y.tamamlandiMi ? "true" : "false";
+            li.classList.toggle("bitti", y.tamamlandiMi);
+            const isaret = li.querySelector("[data-yapilacak-isaretle]");
+            isaret.textContent = y.tamamlandiMi ? "×" : "•";
+            isaret.setAttribute("aria-label", (y.tamamlandiMi ? "Yapılacak yap" : "Bitti olarak işaretle") + ": " + y.baslik);
+            const metin = li.querySelector("[data-yapilacak-duzenle]");
+            metin.textContent = y.baslik;
+            metin.setAttribute("aria-label", "Düzenle: " + y.baslik);
+            li.querySelector("[data-yapilacak-sil]").setAttribute("aria-label", "Sil: " + y.baslik);
+        };
+
+        const dugmeYap = function (sinif, nitelik) {
+            const dugme = document.createElement("button");
+            dugme.type = "button";
+            dugme.className = sinif;
+            dugme.setAttribute(nitelik, "");
+            return dugme;
+        };
+
+        const satirOlustur = function (y) {
+            const li = document.createElement("li");
+            li.setAttribute("data-yapilacak", "");
+            const sil = dugmeYap("madde-sil", "data-yapilacak-sil");
+            sil.innerHTML = '<i class="bi bi-trash3"></i>';
+            li.append(dugmeYap("isaret-dugme", "data-yapilacak-isaretle"), dugmeYap("satir-metin satir-duzenle", "data-yapilacak-duzenle"), sil);
+            satiriCiz(li, y);
+            return li;
+        };
+
+        // Aynı satıra art arda tıklanınca istekler üst üste binmesin
+        const islem = async function (li, is) {
+            if (li.classList.contains("bekliyor")) return;
+            li.classList.add("bekliyor");
+            try { await is(); } catch (h) { bildir(h.message); } finally { li.classList.remove("bekliyor"); }
+        };
+
+        const satiriSil = function (li) {
+            return islem(li, async function () {
+                await api("DELETE", yapilacakAdresi(li.dataset.id));
+                li.remove();
+                ozetiGuncelle();
+            });
+        };
+
+        const satiriDuzenle = function (li) {
+            const metin = li.querySelector("[data-yapilacak-duzenle]");
+            if (li.classList.contains("bekliyor") || metin.hidden) return;
+            const ilkYazi = metin.textContent.trim();
+
+            const alan = document.createElement("input");
+            alan.type = "text";
+            alan.className = "satir-duzenle-girdi";
+            alan.maxLength = 150;
+            alan.value = ilkYazi;
+            alan.setAttribute("aria-label", "Yapılacağı düzenle");
+            metin.hidden = true;
+            metin.after(alan);
+            alan.focus();
+            imleciSonaAl(alan);
+
+            let kapandi = false;
+            const kapat = function (kaydedilsin) {
+                if (kapandi) return;
+                kapandi = true;
+                const yeni = alan.value.trim();
+                alan.remove();
+                metin.hidden = false;
+                if (!kaydedilsin || yeni === ilkYazi) {
+                    metin.focus();
+                    return;
+                }
+                // Boş bırakılan madde silinir (hafta ve ay kutularındaki gibi)
+                if (!yeni) {
+                    satiriSil(li);
+                    return;
+                }
+                islem(li, async function () {
+                    const y = await api("PUT", yapilacakAdresi(li.dataset.id),
+                        { baslik: yeni, tarih: gunTarihi, tamamlandiMi: li.dataset.bitti === "true" });
+                    satiriCiz(li, y);
+                });
+            };
+            alan.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") { e.preventDefault(); kapat(true); }
+                else if (e.key === "Escape") { e.preventDefault(); kapat(false); }
+            });
+            alan.addEventListener("blur", function () { kapat(true); });
+        };
+
+        liste.addEventListener("click", function (e) {
+            const li = e.target.closest("[data-yapilacak]");
+            if (!li) return;
+            if (e.target.closest("[data-yapilacak-isaretle]")) {
+                e.preventDefault();
+                islem(li, async function () {
+                    const y = await api("PATCH", yapilacakAdresi(li.dataset.id) + "/tamamla",
+                        { tamamlandiMi: li.dataset.bitti !== "true" });
+                    satiriCiz(li, y);
+                    ozetiGuncelle();
+                });
+            } else if (e.target.closest("[data-yapilacak-sil]")) {
+                e.preventDefault();
+                satiriSil(li);
+            } else if (e.target.closest("[data-yapilacak-duzenle]")) {
+                satiriDuzenle(li);
+            }
+        });
+
+        const ekleFormu = yapilacakSutunu.querySelector("[data-yapilacak-ekle]");
+        const ekleGirdisi = ekleFormu.querySelector('input[name="Baslik"]');
+        ekleFormu.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const baslik = ekleGirdisi.value.trim();
+            if (!baslik || ekleGirdisi.disabled) return;
+            ekleGirdisi.disabled = true;
+            try {
+                const y = await api("POST", adres.yapilacakApi, { baslik: baslik, tarih: gunTarihi });
+                liste.appendChild(satirOlustur(y));
+                ekleGirdisi.value = "";
+                ozetiGuncelle();
+            } catch (h) {
+                bildir(h.message);
+            } finally {
+                ekleGirdisi.disabled = false;
+                ekleGirdisi.focus();
+            }
+        });
+    }
+
+    // ---------- Gün: Etkinlik formu (Etkinlikler paneli tasarımı) ----------
+    // Başlangıç / bitiş saati (yuvarlak kadran), etkinlik türü ve hatırlatma düğmeleri açılır pencereler açar.
+    // Seçilen değerler formdaki gizli alanlara yazılır; form normal şekilde gönderilir.
+
+    const etkinlikFormu = sayfa.querySelector("[data-etkinlik-ekle]");
+    if (etkinlikFormu) {
+        const alan = (ad) => etkinlikFormu.querySelector("[data-" + ad + "]");
+        const saatPenceresi = etkinlikFormu.querySelector(".saat-penceresi");
+        const turPenceresi = alan("tur-penceresi");
+        const hatirlatmaPenceresi = alan("hatirlatma-penceresi");
+        const saatDugmesi = alan("saat-ac");
+        const bitisDugmesi = alan("bitis-ac");
+        const turDugmesi = alan("tur-ac");
+        const hatirlatmaDugmesi = alan("hatirlatma-ac");
+
+        // Aynı anda tek pencere açık olur; pencere, açan düğmenin hemen altında formun sağına hizalı açılır
+        let acik = null;
+        const pencereKapat = function (odakDonsun) {
+            if (!acik) return;
+            acik.pencere.hidden = true;
+            acik.dugme.setAttribute("aria-expanded", "false");
+            if (odakDonsun) acik.dugme.focus();
+            acik = null;
+        };
+        const pencereAc = function (pencere, dugme) {
+            pencereKapat(false);
+            tarihSeciciAc(false);
+            pencere.style.top = (dugme.offsetTop + dugme.offsetHeight + 8) + "px";
+            pencere.hidden = false;
+            dugme.setAttribute("aria-expanded", "true");
+            acik = { pencere: pencere, dugme: dugme };
+            const odak = pencere.querySelector('[aria-selected="true"], [aria-pressed="true"], .kadran-saat.secili')
+                || pencere.querySelector("button, input");
+            if (odak) odak.focus({ preventScroll: true });
+            pencere.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        };
+        // Düğmeye ikinci kez basılırsa pencere kapanır; açılmadan önce pencere içeriği hazırlanır
+        const acKapa = function (pencere, dugme, hazirla) {
+            return function (e) {
+                e.stopPropagation();
+                if (acik && acik.dugme === dugme) { pencereKapat(false); return; }
+                if (hazirla) hazirla();
+                pencereAc(pencere, dugme);
+            };
+        };
+        [saatPenceresi, turPenceresi, hatirlatmaPenceresi].forEach(function (p) {
+            p.addEventListener("click", function (e) { e.stopPropagation(); });
+        });
+        document.addEventListener("click", function () { pencereKapat(false); });
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && acik) { e.preventDefault(); pencereKapat(true); }
+        });
+
+        // ----- Başlangıç ve bitiş saati: aynı kadran, hangisi seçiliyorsa ona yazar -----
+
         const saatAnahtari = "bugun-etkinlik-saati";
-        const secilenSaat = { saat: +saatPenceresi.dataset.saat, dakika: +saatPenceresi.dataset.dakika };
+        const baslangic = { saat: +saatPenceresi.dataset.saat, dakika: +saatPenceresi.dataset.dakika };
         try {
             const kayitli = JSON.parse(sessionStorage.getItem(saatAnahtari));
-            if (kayitli && kayitli.saat >= 0 && kayitli.saat < 24) Object.assign(secilenSaat, kayitli);
+            if (kayitli && kayitli.saat >= 0 && kayitli.saat < 24) Object.assign(baslangic, kayitli);
         } catch (e) { }
+        // Bitiş: kullanıcı seçmediyse düğmede yalnızca görsel olarak 23:00 yazar ve forma bir şey yazılmaz.
+        // Kadranla seçilen bitiş, başlangıç saati gibi sayfa yenilense de hatırlanır; "Bitiş yok" seçimi kaldırır.
+        const bitisAnahtari = "bugun-etkinlik-bitis";
+        const GORUNEN_BITIS = { saat: 23, dakika: 0 };
+        let bitis = null;
+        try {
+            const kayitli = JSON.parse(sessionStorage.getItem(bitisAnahtari));
+            if (kayitli && kayitli.saat >= 0 && kayitli.saat < 24) bitis = { saat: kayitli.saat, dakika: kayitli.dakika };
+        } catch (e) { }
+        let hedef = "baslangic";
+        const saatMetni = (z) => iki(z.saat) + ":" + iki(z.dakika);
 
         const isaretle = function (dugme, secili) {
             dugme.classList.toggle("secili", secili);
             dugme.setAttribute("aria-pressed", secili ? "true" : "false");
         };
 
-        const saatiCiz = function () {
-            const s = secilenSaat.saat, d = secilenSaat.dakika;
-            const metin = iki(s) + ":" + iki(d);
-            const saat12 = s % 12 === 0 ? 12 : s % 12;
+        const saatleriCiz = function () {
+            const bas = saatMetni(baslangic);
+            alan("saat-metni").textContent = bas;
+            alan("saat-girdi").value = bas;
+            saatDugmesi.setAttribute("aria-label", "Başlangıç saati seç, seçili " + bas);
 
-            sayfa.querySelectorAll("[data-saat-metni]").forEach(function (el) { el.textContent = metin; });
-            sayfa.querySelectorAll("[data-saat-girdi]").forEach(function (el) { el.value = metin; });
-            saatPenceresi.querySelector("[data-akrep]").style.transform = "rotate(" + ((s % 12) * 30 + d * 0.5) + "deg)";
-            saatPenceresi.querySelector("[data-yelkovan]").style.transform = "rotate(" + (d * 6) + "deg)";
-            saatPenceresi.querySelectorAll("[data-saat-n]").forEach(function (b) { isaretle(b, +b.dataset.saatN === saat12); });
-            saatPenceresi.querySelectorAll("[data-yarim]").forEach(function (b) { isaretle(b, (+b.dataset.yarim === 12) === (s >= 12)); });
-            saatPenceresi.querySelectorAll("[data-dakika]").forEach(function (b) { isaretle(b, +b.dataset.dakika === d); });
-            saatDugmesi.setAttribute("aria-label", "Saat seç, seçili " + metin);
-            try { sessionStorage.setItem(saatAnahtari, JSON.stringify(secilenSaat)); } catch (e) { }
-        };
+            alan("bitis-girdi").value = bitis ? saatMetni(bitis) : "";
+            alan("bitis-metni").textContent = saatMetni(bitis || GORUNEN_BITIS);
+            bitisDugmesi.setAttribute("aria-label", bitis
+                ? "Bitiş saati seç, seçili " + saatMetni(bitis) : "Bitiş saati seç (isteğe bağlı), seçilmedi");
 
-        const saatPenceresiAc = function (ac) {
-            saatPenceresi.hidden = !ac;
-            saatDugmesi.setAttribute("aria-expanded", ac ? "true" : "false");
-            if (ac) {
-                const secili = saatPenceresi.querySelector(".kadran-saat.secili");
-                if (secili) secili.focus({ preventScroll: true });
-                saatPenceresi.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            const z = hedef === "bitis" ? bitis : baslangic;
+            if (z) {
+                const saat12 = z.saat % 12 === 0 ? 12 : z.saat % 12;
+                alan("kadran-metni").textContent = saatMetni(z);
+                saatPenceresi.querySelector("[data-akrep]").style.transform = "rotate(" + ((z.saat % 12) * 30 + z.dakika * 0.5) + "deg)";
+                saatPenceresi.querySelector("[data-yelkovan]").style.transform = "rotate(" + (z.dakika * 6) + "deg)";
+                saatPenceresi.querySelectorAll("[data-saat-n]").forEach(function (b) { isaretle(b, +b.dataset.saatN === saat12); });
+                saatPenceresi.querySelectorAll("[data-yarim]").forEach(function (b) { isaretle(b, (+b.dataset.yarim === 12) === (z.saat >= 12)); });
+                saatPenceresi.querySelectorAll("[data-dakika]").forEach(function (b) { isaretle(b, +b.dataset.dakika === z.dakika); });
             }
+            try {
+                sessionStorage.setItem(saatAnahtari, JSON.stringify(baslangic));
+                if (bitis) sessionStorage.setItem(bitisAnahtari, JSON.stringify(bitis));
+                else sessionStorage.removeItem(bitisAnahtari);
+            } catch (e) { }
         };
 
-        saatDugmesi.addEventListener("click", function (e) {
-            e.stopPropagation();
-            saatPenceresiAc(saatPenceresi.hidden);
-        });
+        const kadranHazirla = function (yeniHedef) {
+            hedef = yeniHedef;
+            if (hedef === "bitis" && !bitis) {
+                // Seçilmemiş bitiş kadranda düğmede görünen saatle (23:00) açılır
+                bitis = { saat: GORUNEN_BITIS.saat, dakika: GORUNEN_BITIS.dakika };
+            }
+            const bitisMi = hedef === "bitis";
+            alan("kadran-baslik").textContent = bitisMi ? "Bitiş saati" : "Etkinlik saati";
+            saatPenceresi.setAttribute("aria-label", bitisMi ? "Bitiş saati seç" : "Etkinlik saati seç");
+            alan("bitis-dugmeleri").hidden = !bitisMi;
+            alan("baslangic-tamam").hidden = bitisMi;
+            saatleriCiz();
+        };
+
+        saatDugmesi.addEventListener("click", acKapa(saatPenceresi, saatDugmesi, function () { kadranHazirla("baslangic"); }));
+        bitisDugmesi.addEventListener("click", acKapa(saatPenceresi, bitisDugmesi, function () { kadranHazirla("bitis"); }));
 
         saatPenceresi.addEventListener("click", function (e) {
-            e.stopPropagation();
             const b = e.target.closest("button");
             if (!b) return;
+            const z = hedef === "bitis" ? bitis : baslangic;
             if (b.dataset.saatN) {
-                secilenSaat.saat = (+b.dataset.saatN % 12) + (secilenSaat.saat >= 12 ? 12 : 0);
+                z.saat = (+b.dataset.saatN % 12) + (z.saat >= 12 ? 12 : 0);
             } else if (b.dataset.yarim) {
-                secilenSaat.saat = (secilenSaat.saat % 12) + +b.dataset.yarim;
+                z.saat = (z.saat % 12) + +b.dataset.yarim;
             } else if (b.dataset.dakika) {
-                secilenSaat.dakika = +b.dataset.dakika;
+                z.dakika = +b.dataset.dakika;
+            } else if (b.hasAttribute("data-bitis-temizle")) {
+                bitis = null;
+                saatleriCiz();
+                pencereKapat(true);
+                return;
             } else if (b.hasAttribute("data-saat-kapat")) {
-                saatPenceresiAc(false);
-                saatDugmesi.focus();
+                pencereKapat(true);
                 return;
             }
-            saatiCiz();
+            saatleriCiz();
         });
 
-        document.addEventListener("click", function () {
-            if (!saatPenceresi.hidden) saatPenceresiAc(false);
+        // ----- Etkinlik türü -----
+
+        const turSec = function (tur, ad, ikon) {
+            alan("tur-girdi").value = tur;
+            alan("ozel-tur-girdi").value = tur === "Ozel" ? ad : "";
+            alan("tur-metni").textContent = ad;
+            alan("tur-ikonu").innerHTML = ikon;
+            turDugmesi.setAttribute("aria-label", "Etkinlik türü: " + ad);
+            turPenceresi.querySelectorAll("[data-tur-secenek]").forEach(function (s) {
+                s.setAttribute("aria-selected", s.dataset.turSecenek === tur ? "true" : "false");
+            });
+            alan("ozel-tur-kutusu").classList.toggle("secili", tur === "Ozel");
+        };
+
+        turDugmesi.addEventListener("click", acKapa(turPenceresi, turDugmesi));
+        turPenceresi.addEventListener("click", function (e) {
+            const secenek = e.target.closest("[data-tur-secenek]");
+            if (!secenek) return;
+            turSec(secenek.dataset.turSecenek, secenek.textContent.trim(), secenek.querySelector(".secim-ikon").innerHTML);
+            alan("ozel-tur-yaz").value = "";
+            pencereKapat(true);
         });
-        document.addEventListener("keydown", function (e) {
-            if (e.key === "Escape" && !saatPenceresi.hidden) {
-                saatPenceresiAc(false);
-                saatDugmesi.focus();
+        // "Kendi türün…": yazıp Enter'a basınca seçilir (Enter formu göndermez)
+        alan("ozel-tur-yaz").addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            const ad = this.value.trim();
+            if (!ad) return;
+            turSec("Ozel", ad, '<i class="bi bi-tag"></i>');
+            pencereKapat(true);
+        });
+
+        // ----- Hatırlatma: kaç × birim -----
+
+        const BIRIM_ADLARI = { 1: "dakika", 60: "saat", 1440: "gün", 10080: "hafta" };
+        const KACLAR = [].map.call(hatirlatmaPenceresi.querySelectorAll("[data-kac]"), function (b) { return +b.dataset.kac; });
+        const gecici = { kac: 15, birim: 1 };
+        const hatirlatmaMetni = (kac, birim) => kac + " " + BIRIM_ADLARI[birim] + " önce";
+
+        const hatirlatmaCiz = function () {
+            hatirlatmaPenceresi.querySelectorAll("[data-kac]").forEach(function (b) {
+                b.setAttribute("aria-pressed", +b.dataset.kac === gecici.kac ? "true" : "false");
+            });
+            hatirlatmaPenceresi.querySelectorAll("[data-birim]").forEach(function (b) {
+                b.setAttribute("aria-pressed", +b.dataset.birim === gecici.birim ? "true" : "false");
+            });
+            alan("hatirlatma-ozet").textContent = "Etkinlikten " + hatirlatmaMetni(gecici.kac, gecici.birim);
+        };
+
+        // Pencere seçili hatırlatmayla açılır; hatırlatma yoksa 15 dakika önerilir
+        const hatirlatmaHazirla = function () {
+            const dk = +alan("hatirlatici-girdi").value;
+            gecici.kac = 15;
+            gecici.birim = 1;
+            [10080, 1440, 60, 1].some(function (birim) {
+                if (dk && dk % birim === 0 && KACLAR.indexOf(dk / birim) >= 0) {
+                    gecici.kac = dk / birim;
+                    gecici.birim = birim;
+                    return true;
+                }
+                return false;
+            });
+            hatirlatmaCiz();
+        };
+
+        const hatirlatmaAyarla = function (dakika, metin) {
+            alan("hatirlatici-girdi").value = dakika || "";
+            alan("hatirlatma-metni").textContent = metin;
+            hatirlatmaDugmesi.setAttribute("aria-label", "Hatırlatma: " + metin.toLocaleLowerCase("tr"));
+        };
+
+        hatirlatmaDugmesi.addEventListener("click", acKapa(hatirlatmaPenceresi, hatirlatmaDugmesi, hatirlatmaHazirla));
+        hatirlatmaPenceresi.addEventListener("click", function (e) {
+            const b = e.target.closest("button");
+            if (!b) return;
+            if (b.dataset.kac) {
+                gecici.kac = +b.dataset.kac;
+            } else if (b.dataset.birim) {
+                gecici.birim = +b.dataset.birim;
+            } else if (b.hasAttribute("data-hatirlatma-yok")) {
+                hatirlatmaAyarla(null, "Hatırlatma yok");
+                pencereKapat(true);
+                return;
+            } else if (b.hasAttribute("data-pencere-vazgec")) {
+                pencereKapat(true);
+                return;
+            } else if (b.hasAttribute("data-hatirlatma-tamam")) {
+                hatirlatmaAyarla(gecici.kac * gecici.birim, hatirlatmaMetni(gecici.kac, gecici.birim));
+                pencereKapat(true);
+                return;
+            }
+            hatirlatmaCiz();
+        });
+
+        // ----- Gönderim: bitiş saati başlangıçtan sonra olmalı -----
+
+        etkinlikFormu.addEventListener("submit", function (e) {
+            const bitisDegeri = alan("bitis-girdi").value;
+            if (bitisDegeri && bitisDegeri <= alan("saat-girdi").value) {
+                e.preventDefault();
+                bildir("Bitiş saati başlangıç saatinden sonra olmalı.");
             }
         });
 
-        saatiCiz();
+        saatleriCiz();
     }
 
     // ---------- Takvimler: sağdaki kart ve etkinlik sütunundaki açılır seçici ----------
@@ -349,9 +694,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ---------- Hafta / ay kutuları: yerinde düzenleme, silme ve ekleme ----------
 
-    const ekleAdresi = { Not: adres.notEkle, Yapilacak: adres.yapilacakEkle, Etkinlik: adres.etkinlikEkle };
-    const guncellemeAdresi = { Not: adres.notGuncelle, Yapilacak: adres.yapilacakGuncelle, Etkinlik: adres.etkinlikGuncelle };
-    const silmeAdresi = { Not: adres.notSil, Yapilacak: adres.yapilacakSil, Etkinlik: adres.etkinlikSil };
+    // Notlar ve etkinlikler sayfa denetleyicisine, yapılacaklar Web API'sine gider
+    const ekleAdresi = { Not: adres.notEkle, Etkinlik: adres.etkinlikEkle };
+    const guncellemeAdresi = { Not: adres.notGuncelle, Etkinlik: adres.etkinlikGuncelle };
+    const silmeAdresi = { Not: adres.notSil, Etkinlik: adres.etkinlikSil };
     const TURLER = {
         Yapilacak: { ad: "Yapılacak", sinif: "tur-yapilacak", isaret: "•", ipucu: "yapılacak yaz…" },
         Etkinlik: { ad: "Etkinlik", sinif: "tur-etkinlik", isaret: "○", ipucu: "14:30 etkinlik…" },
@@ -377,7 +723,7 @@ document.addEventListener("DOMContentLoaded", function () {
         dugme.parentElement.querySelector("[data-madde-sil]").setAttribute("aria-label", "Sil: " + metin);
     };
 
-    const maddeOlustur = function (tur, id, metin, saat, kisa) {
+    const maddeOlustur = function (tur, id, metin, saat, kisa, tarih) {
         const kap = document.createElement("div");
         kap.className = "madde-kap";
         const dugme = document.createElement("button");
@@ -388,6 +734,8 @@ document.addEventListener("DOMContentLoaded", function () {
         dugme.dataset.id = id;
         dugme.dataset.metin = metin;
         dugme.dataset.saat = saat || "";
+        dugme.dataset.tarih = tarih;
+        dugme.dataset.bitti = "false";
         if (kisa) dugme.dataset.kisa = "1";
         const yazi = document.createElement("span");
         yazi.className = "madde-metin";
@@ -403,7 +751,11 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     const maddeyiSil = async function (dugme) {
-        await gonder(silmeAdresi[dugme.dataset.tur], { Id: dugme.dataset.id });
+        if (dugme.dataset.tur === "Yapilacak") {
+            await api("DELETE", yapilacakAdresi(dugme.dataset.id));
+        } else {
+            await gonder(silmeAdresi[dugme.dataset.tur], { Id: dugme.dataset.id });
+        }
         dugme.closest(".madde-kap").remove();
     };
 
@@ -455,7 +807,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     await gonder(guncellemeAdresi.Not, { Id: dugme.dataset.id, Metin: yazi });
                     dugme.dataset.metin = yazi.trim();
                 } else {
-                    await gonder(guncellemeAdresi.Yapilacak, { Id: dugme.dataset.id, Baslik: yazi.trim() });
+                    await api("PUT", yapilacakAdresi(dugme.dataset.id),
+                        { baslik: yazi.trim(), tarih: dugme.dataset.tarih, tamamlandiMi: dugme.dataset.bitti === "true" });
                     dugme.dataset.metin = yazi.trim();
                 }
                 maddeyiGoster(dugme);
@@ -506,23 +859,23 @@ document.addEventListener("DOMContentLoaded", function () {
         const tarih = ekle.dataset.tarih;
         const kisa = !!ekle.closest(".ay-hucre");
 
-        let veri, metin = yazi, saat = null;
-        if (tur === "Etkinlik") {
-            const ayrik = saatiAyir(yazi);
-            metin = ayrik.metin;
-            saat = ayrik.saat || "09:00";
-            veri = { Tarih: tarih, Saat: saat, Baslik: metin };
-        } else if (tur === "Yapilacak") {
-            veri = { Tarih: tarih, Baslik: metin };
-        } else {
-            veri = { Tarih: tarih, Metin: metin };
-        }
+        let metin = yazi, saat = null;
+        const kaydet = function () {
+            if (tur === "Yapilacak") return api("POST", adres.yapilacakApi, { baslik: metin, tarih: tarih });
+            if (tur === "Etkinlik") {
+                const ayrik = saatiAyir(yazi);
+                metin = ayrik.metin;
+                saat = ayrik.saat || "09:00";
+                return gonder(ekleAdresi.Etkinlik, { Tarih: tarih, Saat: saat, Baslik: metin });
+            }
+            return gonder(ekleAdresi.Not, { Tarih: tarih, Metin: metin });
+        };
 
         girdi.disabled = true;
         try {
-            const sonuc = await gonder(ekleAdresi[tur], veri);
+            const sonuc = await kaydet();
             const liste = ekle.parentElement.querySelector(".hucre-maddeler");
-            liste.appendChild(maddeOlustur(tur, sonuc.id, metin, saat, kisa));
+            liste.appendChild(maddeOlustur(tur, sonuc.id, metin, saat, kisa, tarih));
             girdi.value = "";
         } catch (h) {
             bildir(h.message);

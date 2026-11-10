@@ -12,12 +12,15 @@ public class BugunController : Controller
 {
     private readonly IBugunServisi _bugunServisi;
     private readonly IMaddeServisi _maddeServisi;
+    private readonly IYapilacakServisi _yapilacakServisi;
     private readonly UserManager<Kullanici> _kullaniciYonetici;
 
-    public BugunController(IBugunServisi bugunServisi, IMaddeServisi maddeServisi, UserManager<Kullanici> kullaniciYonetici)
+    public BugunController(IBugunServisi bugunServisi, IMaddeServisi maddeServisi, IYapilacakServisi yapilacakServisi,
+        UserManager<Kullanici> kullaniciYonetici)
     {
         _bugunServisi = bugunServisi;
         _maddeServisi = maddeServisi;
+        _yapilacakServisi = yapilacakServisi;
         _kullaniciYonetici = kullaniciYonetici;
     }
 
@@ -72,41 +75,34 @@ public class BugunController : Controller
     }
 
     // ---------- Yapılacaklar ----------
+    // Sayfadaki JavaScript yapılacakları /api/yapilacaklar Web API'si ile yönetir.
+    // Bu üç işlem yalnızca JavaScript kapalıyken gün sayfasındaki formların çalışması içindir.
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> YapilacakEkle(YeniYapilacakFormu form)
     {
-        int? id = null;
         if (ModelState.IsValid)
         {
-            id = await _maddeServisi.YapilacakEkleAsync(KullaniciId, form.Tarih, form.Baslik);
+            await _yapilacakServisi.EkleAsync(KullaniciId, form.Tarih, form.Baslik);
         }
-        return Sonuc(form, new { id });
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> YapilacakGuncelle(YapilacakGuncelleFormu form)
-    {
-        var bulundu = ModelState.IsValid && await _maddeServisi.YapilacakGuncelleAsync(KullaniciId, form.Id, form.Baslik);
-        return Sonuc(form, bulundu: bulundu);
+        return Sonuc(form);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> YapilacakDegistir(MaddeSilFormu form)
     {
-        var bulundu = await _maddeServisi.YapilacakDurumDegistirAsync(KullaniciId, form.Id);
-        return Sonuc(form, bulundu: bulundu);
+        await _yapilacakServisi.DurumAyarlaAsync(KullaniciId, form.Id, null);
+        return Sonuc(form);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> YapilacakSil(MaddeSilFormu form)
     {
-        var bulundu = await _maddeServisi.YapilacakSilAsync(KullaniciId, form.Id);
-        return Sonuc(form, bulundu: bulundu);
+        await _yapilacakServisi.SilAsync(KullaniciId, form.Id);
+        return Sonuc(form);
     }
 
     // ---------- Etkinlikler ----------
@@ -119,7 +115,8 @@ public class BugunController : Controller
         if (ModelState.IsValid)
         {
             var tarih = form.Tarih!.Value;
-            id = await _maddeServisi.EtkinlikEkleAsync(KullaniciId, form.Baslik, tarih.ToDateTime(form.Saat!.Value));
+            id = await _maddeServisi.EtkinlikEkleAsync(KullaniciId, form.Baslik, tarih.ToDateTime(form.Saat!.Value),
+                form.Tur, form.BitisSaati is TimeOnly bitis ? tarih.ToDateTime(bitis) : null, form.HatirlaticiDk, form.OzelTur);
 
             // Gün sayfasından başka bir güne eklendiyse kullanıcıya nereye eklendiği söylenir
             if (tarih != form.Odak && !ArkaPlanIstegi)
