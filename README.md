@@ -28,6 +28,7 @@ bullet journal yöntemiyle tasarlanmış ağ tabanlı bir ajanda uygulaması.
 - **ASP.NET Core MVC** (.NET 10)
 - **PostgreSQL** + **Entity Framework Core** (Npgsql, Code-First, migration)
 - **ASP.NET Core Identity** — giriş, kayıt, şifre sıfırlama, `Admin` / `Kullanici` rolleri
+- **ASP.NET Core Web API** + **Swagger** (Swashbuckle) — yapılacaklar için REST API
 - **Bootstrap 5.3**, Bootstrap Icons, Inter ve Caveat yazı tipleri (`wwwroot/lib` altında, internet gerektirmez)
 
 ## Kurulum
@@ -98,12 +99,33 @@ dotnet ef migrations add DegisiklikAdi --project Kodlar/src/DijitalAjanda.Web -o
 > `relation ... already exists` hatası alırsan eski veritabanını sil ve uygulamayı yeniden başlat:
 > `dotnet ef database drop --project Kodlar/src/DijitalAjanda.Web`
 
+## Yapılacaklar Web API'si
+
+Bugün sayfasındaki yapılacaklar (gün görünümünde ekleme, işaretleme, metne tıklayıp düzenleme, silme; hafta ve ay
+kutularında ekleme, düzenleme, silme) sayfa yenilenmeden bu API ile yapılır.
+İstekler oturum çerezi ile yetkilendirilir; her kullanıcı yalnızca kendi maddelerini görür.
+
+| Yöntem | Adres | Açıklama | Başarılı yanıt |
+|---|---|---|---|
+| GET | `/api/yapilacaklar?tarih=2026-11-09` | Günün yapılacakları (tarih verilmezse hepsi) | 200 |
+| GET | `/api/yapilacaklar/{id}` | Tek yapılacak | 200 |
+| POST | `/api/yapilacaklar` | `{ "baslik", "tarih" }` ile ekler | 201 |
+| PUT | `/api/yapilacaklar/{id}` | `{ "baslik", "tarih", "tamamlandiMi" }` ile günceller | 200 |
+| DELETE | `/api/yapilacaklar/{id}` | Siler | 204 |
+| PATCH | `/api/yapilacaklar/{id}/tamamla` | `{ "tamamlandiMi": true }` ile işaretler; gövdesizse durumu tersine çevirir | 200 |
+
+Hatalı istekler Türkçe mesajlı `400` (alan bazında `errors`), oturum yoksa `401`, kayıt yoksa `404` döner.
+
+- **Swagger:** geliştirme ortamında <http://localhost:5211/swagger>. Önce uygulamada giriş yapın, sonra Swagger'dan deneyin.
+- **Postman:** `Kodlar/tests/postman/DijitalAjanda-Yapilacaklar.postman_collection.json` koleksiyonunu içe aktarın,
+  `email` / `sifre` değişkenlerine kayıtlı bir kullanıcı yazın ve Runner ile çalıştırın (giriş, CRUD ve doğrulama testleri).
+
 ## Roller
 
 | Rol | Erişim |
 |---|---|
 | Ziyaretçi | Ana sayfa, kayıt, giriş, şifremi unuttum, gizlilik |
-| Kullanici | Bugün sayfası (kendi not, yapılacak ve etkinlikleri), Alışkanlıklar, Kitaplık ve diğer ajanda sayfaları |
+| Kullanici | Bugün sayfası (kendi not, yapılacak ve etkinlikleri), Yapılacaklar API'si, Alışkanlıklar, Kitaplık ve diğer ajanda sayfaları |
 | Admin | Yönetim paneli (`/Yonetim`) — giriş ekranındaki **Yönetici girişi** sekmesinden |
 
 Yetkisiz erişimler **Erişim engellendi**, olmayan sayfalar ve hatalar **Hata** sayfasına yönlendirilir.
@@ -113,7 +135,7 @@ Yetkisiz erişimler **Erişim engellendi**, olmayan sayfalar ve hatalar **Hata**
 | Tablo | İlişki |
 |---|---|
 | AspNetUsers (Kullanici) | 1–N: Notlar, Gorevler, Etkinlikler, Stickerlar, Aliskanliklar, SuKayitlari, Kitaplar |
-| Notlar, Gorevler, Etkinlikler | Bugün sayfasının not (–), yapılacak (• / ×) ve etkinlik (○) maddeleri |
+| Notlar, Gorevler, Etkinlikler | Bugün sayfasının not (–), yapılacak (• / ×) ve etkinlik (○) maddeleri; etkinliklerde tür (7 hazır tür ya da kullanıcının kendi türü), bitiş saati ve hatırlatıcı (kaç × dakika / saat / gün / hafta) |
 | Aliskanliklar | 1–N: AliskanlikKayitlari (aynı gün tek kayıt) |
 | SuKayitlari | Kullanıcı başına günde tek kayıt |
 | SikcaSorulanSorular, IletisimMesajlari | Yönetici panelinden yönetilir |
@@ -123,11 +145,12 @@ Yetkisiz erişimler **Erişim engellendi**, olmayan sayfalar ve hatalar **Hata**
 ```text
 ProjeDokümanları/            Proje kuralları ve plan belgesi
 Kodlar/
+├── tests/postman/           Yapılacaklar API'sinin Postman koleksiyonu
 └── src/DijitalAjanda.Web/
-    ├── Controllers/         Home, Hesap, Bugun, Tema, Aliskanliklar, Yonetim
+    ├── Controllers/         Home, Hesap, Bugun, Tema, Aliskanliklar, Yonetim; Api/YapilacaklarController
     ├── Data/                DbContext, roller, seed işlemi, migration'lar
-    ├── Models/              Entities (tablolar) ve ViewModels (Hesap ve Bugun form/sayfa modelleri)
-    ├── Services/            Bugün ve madde servisleri, e-posta, Türkçe Identity mesajları
+    ├── Models/              Entities (tablolar), ViewModels (Hesap ve Bugun form/sayfa modelleri), Api (istek/yanıt modelleri)
+    ├── Services/            Bugün, madde ve yapılacak servisleri, e-posta, Türkçe Identity mesajları
     ├── Views/               Home, Hesap, Bugun (gün/hafta/ay), Shared (layout, header, footer, hata)
     ├── wwwroot/             site.css/js (tema), bugun.css/js ve kütüphaneler
     └── Program.cs
@@ -140,7 +163,7 @@ Kodlar/
 | 1 | Yağmur Kalyoncu | Proje iskeleti, ortak sayfa düzeni, açık/koyu tema, ana sayfa | ✅ |
 | 2 | Yağmur Kalyoncu | Entity'ler, PostgreSQL + migration, kayıt/giriş, şifre sıfırlama, roller, hata sayfaları | ✅ |
 | 3 | Yağmur Kalyoncu | Bugün sayfası (gün/hafta/ay; hafta ve ay kutularında ekleme, düzenleme, silme; saat kadranıyla etkinlik ekleme; takvim ve resmi tatiller; yaklaşan etkinlikler), tanıtım sayfası, hesaba kaydedilen tema, responsive düzen | ✅ |
-| 4 | Muhammet Şahin | Yapılacaklar Web API + Swagger, Bugün sayfasının API'ye bağlanması, etkinlik türü / bitiş saati / hatırlatıcı | ⏳ |
+| 4 | Muhammet Şahin | Yapılacaklar Web API + Swagger, Bugün sayfasının API'ye bağlanması, etkinlik türü / bitiş saati / hatırlatıcı, model doğrulama, Postman testleri | ✅ |
 | 5 | Muhammet Şahin | Alışkanlık ve su takibi | ⏳ |
 | 6 | Muhammet Şahin | Kitaplık, sticker yükleme ve sürükleme | ⏳ |
 | 7 | Şahnur Çöğür | Nager.Date harici API, SSS / Bize ulaşın sayfaları | ⏳ |
