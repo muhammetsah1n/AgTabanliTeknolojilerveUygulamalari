@@ -20,7 +20,10 @@
                         </span>
                         <span class="yaklasan-metin">
                             <span class="baslik">@etkinlik.Metin</span>
-                            <small>@TurkceTarih.GunAdi(etkinlik.Tarih)@(etkinlik.Saat is TimeOnly saat ? " " + TurkceTarih.SaatMetni(saat) : "")</small>
+                            <small>
+                                @TurkceTarih.GunAdi(etkinlik.Tarih)@(etkinlik.Saat is TimeOnly saat ? " " + TurkceTarih.SaatMetni(saat) : "")@(etkinlik.BitisSaati is TimeOnly bitis ? "–" + TurkceTarih.SaatMetni(bitis) : "")
+                                @(etkinlik.EtkinlikTuru == DijitalAjanda.Web.Models.Entities.EtkinlikTuru.Etkinlik ? "" : "· " + EtkinlikSecenekleri.TurAdi(etkinlik.EtkinlikTuru, etkinlik.OzelTur))
+                            </small>
                         </span>
                     </a>
                 </li>
