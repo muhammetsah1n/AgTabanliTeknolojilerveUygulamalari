@@ -55,6 +55,8 @@ builder.Services.AddScoped<IEpostaGonderici, SmtpEpostaGonderici>();
 builder.Services.AddScoped<IBugunServisi, BugunServisi>();
 builder.Services.AddScoped<IMaddeServisi, MaddeServisi>();
 builder.Services.AddScoped<IYapilacakServisi, YapilacakServisi>();
+builder.Services.AddScoped<IAliskanlikServisi, AliskanlikServisi>();
+builder.Services.AddScoped<ISuServisi, SuServisi>();
 
 builder.Services.AddControllersWithViews(options => TurkceDogrulamaMesajlari(options.ModelBindingMessageProvider))
     // Hatalı JSON'da iç hata metni yerine yukarıdaki Türkçe mesajlar gösterilir
