@@ -1,0 +1,119 @@
+@model AliskanliklarViewModel
+@{
+    ViewData["Title"] = "Alışkanlıklar";
+    var mesaj = TempData["AliskanlikMesaj"] as string;
+}
+
+@section Stiller {
+    <link rel="stylesheet" href="~/css/aliskanliklar.css" asp-append-version="true" />
+}
+
+<section class="container al-sayfa aliskanlik-sayfa">
+    <div class="al-baslik-satiri">
+        <div>
+            <h1 class="el al-baslik">Alışkanlıklar</h1>
+            <p class="al-alt-baslik">Her gün kutucuğu işaretle, serini bozma.</p>
+        </div>
+        <a class="btn btn-ana al-yeni" asp-action="Yeni" data-form-ac="yeni"><i class="bi bi-plus-lg"></i>Yeni alışkanlık</a>
+    </div>
+
+    <partial name="_Sekmeler" model="@("Aliskanliklar")" />
+
+    <div class="al-uyari" role="status" id="alUyari" hidden="@(mesaj is null)">@mesaj</div>
+    <div class="al-uyari hata" role="alert" id="alHata" hidden></div>
+
+    @* Sayfa içinde açılan yeni alışkanlık formu (JavaScript kapalıyken Yeni sayfası kullanılır).
+       Var olan alışkanlıklar tablodaki kendi satırlarında düzenlenir. *@
+    <div class="al-satir-ici-form" id="alForm" role="region" aria-labelledby="alFormBaslik" hidden>
+        <h2 id="alFormBaslik">Yeni alışkanlık</h2>
+        <form method="post" asp-action="Yeni" novalidate>
+            <div class="al-form-izgara">
+                <partial name="_FormAlanlari" model="new AliskanlikFormu()" />
+            </div>
+            <div class="al-form-dugmeler">
+                <button type="submit" class="btn btn-ana"><i class="bi bi-check-lg"></i>Kaydet</button>
+                <button type="button" class="btn btn-cizgili" data-form-kapat>Vazgeç</button>
+            </div>
+        </form>
+    </div>
+
+    @* Henüz alışkanlık yoksa tablo gösterilmez; ilk alışkanlık eklenince oluşur *@
+    @if (Model.Satirlar.Count > 0)
+    {
+    @* Kutular ve sil düğmeleri bu tek formla gönderilir; her düğme kendi adresini formaction ile verir *@
+    <form method="post" id="alIzgara" class="al-izgara-kart">
+        @Html.AntiForgeryToken()
+        <div class="al-tablo-kaydir">
+            <table class="al-tablo">
+                <caption class="visually-hidden">Bu haftanın alışkanlık ızgarası</caption>
+                <thead>
+                    <tr>
+                        <th scope="col" class="al-ad-sutun">Alışkanlık</th>
+                        @foreach (var gun in Model.Gunler)
+                        {
+                            <th scope="col" class="al-gun-sutun @(gun.BugunMu ? "bugun" : "")" aria-current="@(gun.BugunMu ? "date" : null)">
+                                @gun.KisaAd<small>@gun.Tarih.Day</small>
+                            </th>
+                        }
+                        <th scope="col" class="al-hafta-sutun">Hafta</th>
+                        <th scope="col" class="al-seri-sutun">Seri</th>
+                        <th scope="col" class="al-islem-sutun"><span class="visually-hidden">İşlemler</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var satir in Model.Satirlar)
+                    {
+                        <tr data-aliskanlik="@satir.Id">
+                            <th scope="row" class="al-ad-sutun">
+                                <span class="al-nokta @satir.RenkSinifi"></span><strong title="@satir.Ad">@satir.Ad</strong>
+                            </th>
+                            @foreach (var gun in Model.Gunler)
+                            {
+                                var isaretli = satir.IsaretliGunler.Contains(gun.Tarih);
+                                var etiket = $"{satir.Ad} – {gun.Tarih.Day} {TurkceTarih.Aylar[gun.Tarih.Month - 1]}";
+                                <td>
+                                    @if (gun.GelecekMi)
+                                    {
+                                        <span class="al-kutu gelecek" aria-hidden="true"></span>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="al-kutu @(isaretli ? "isaretli " + satir.RenkSinifi : "")"
+                                                formaction="@Url.Action("Isaretle", new { id = satir.Id })"
+                                                name="tarih" value="@TurkceTarih.Iso(gun.Tarih)"
+                                                aria-label="@etiket" aria-pressed="@(isaretli ? "true" : "false")">
+                                            <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                        </button>
+                                    }
+                                </td>
+                            }
+                            <td class="al-hafta @(satir.HedefeUlasildi ? "tamam" : "")" data-hafta>@satir.HaftadaYapilan/@satir.HaftalikHedef</td>
+                            <td class="al-seri" title="En uzun seri: @satir.EnUzunSeri gün" data-seri>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"></path></svg>
+                                <span>@satir.Seri</span>
+                                <span class="visually-hidden">günlük seri, en uzun seri @satir.EnUzunSeri gün</span>
+                            </td>
+                            <td class="al-islemler">
+                                @* JavaScript açıkken satır düzenleme moduna geçer; kapalıyken Duzenle sayfasını açar *@
+                                <a class="al-islem" asp-action="Duzenle" asp-route-id="@satir.Id" aria-label="Düzenle: @satir.Ad"
+                                   data-duzenle data-ad="@satir.Ad" data-hedef="@satir.HaftalikHedef" data-renk="@satir.RenkKodu">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="submit" class="al-islem sil" formaction="@Url.Action("Sil", new { id = satir.Id })"
+                                        aria-label="Sil: @satir.Ad" data-sil="@satir.Ad">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </form>
+    }
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/aliskanliklar.js" asp-append-version="true"></script>
+}

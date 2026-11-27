@@ -1,7 +1,9 @@
 @{
     var aktifController = ViewContext.RouteData.Values["controller"]?.ToString();
 
-    string AktifMi(string controller) => aktifController == controller ? "active" : "";
+    // Su takibi, Alışkanlıklar sayfasının bir sekmesidir
+    string AktifMi(string controller) =>
+        aktifController == controller || (controller == "Aliskanliklar" && aktifController == "SuTakibi") ? "active" : "";
 
     var girisYapti = User.Identity?.IsAuthenticated == true;
     var adminMi = User.IsInRole(Roller.Admin);

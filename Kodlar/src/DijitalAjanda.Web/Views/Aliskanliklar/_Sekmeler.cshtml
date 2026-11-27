@@ -1,0 +1,13 @@
+@model string
+@* Alışkanlıklar / Su takibi / Kitaplık sekmeleri; Model = seçili sekmenin controller adı *@
+@{
+    string Secili(string ad) => Model == ad ? "secili" : "";
+    string? Aria(string ad) => Model == ad ? "page" : null;
+}
+
+<nav class="al-sekmeler" aria-label="Alışkanlık sayfaları">
+    <a class="@Secili("Aliskanliklar")" aria-current="@Aria("Aliskanliklar")" asp-controller="Aliskanliklar" asp-action="Index">Alışkanlıklar</a>
+    <a class="@Secili("SuTakibi")" aria-current="@Aria("SuTakibi")" asp-controller="SuTakibi" asp-action="Index">Su takibi</a>
+    @* Kitaplık 6. haftada eklenecek *@
+    <a href="#" class="pasif-link" aria-disabled="true" title="6. haftada eklenecek">Kitaplık</a>
+</nav>

@@ -1,0 +1,30 @@
+@model AliskanlikFormu
+@{
+    var yeni = Model.Id is null;
+    ViewData["Title"] = yeni ? "Yeni alışkanlık" : "Alışkanlığı düzenle";
+}
+
+@section Stiller {
+    <link rel="stylesheet" href="~/css/aliskanliklar.css" asp-append-version="true" />
+}
+
+<section class="container al-sayfa">
+    <a class="geri-link" asp-action="Index"><i class="bi bi-arrow-left"></i>Alışkanlıklar</a>
+
+    <div class="al-form-kart">
+        <h1 class="form-baslik">@ViewData["Title"]</h1>
+
+        <form asp-action="@(yeni ? "Yeni" : "Duzenle")" asp-route-id="@Model.Id" method="post" class="form-alanlar mt-4" novalidate>
+            <partial name="_FormAlanlari" model="Model" />
+
+            <div class="al-form-dugmeler">
+                <button type="submit" class="btn btn-ana"><i class="bi bi-check-lg"></i>Kaydet</button>
+                <a class="btn btn-cizgili" asp-action="Index">Vazgeç</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

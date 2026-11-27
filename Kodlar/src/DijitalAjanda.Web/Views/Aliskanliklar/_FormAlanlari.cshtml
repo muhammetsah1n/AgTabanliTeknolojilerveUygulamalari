@@ -1,0 +1,31 @@
+@model AliskanlikFormu
+@* Alışkanlık formunun alanları: ayrı form sayfası (Form.cshtml) ve listedeki açılır form ortak kullanır *@
+
+<div asp-validation-summary="ModelOnly" class="form-uyari" role="alert"></div>
+
+<div class="alan al-alan-ad">
+    <label asp-for="Ad"></label>
+    <input asp-for="Ad" class="girdi" placeholder="Örn. 2 litre su iç" autocomplete="off" />
+    <span asp-validation-for="Ad" role="alert"></span>
+</div>
+
+<div class="alan al-alan-hedef">
+    <label asp-for="HaftalikHedef"></label>
+    <input asp-for="HaftalikHedef" class="girdi" type="number" min="1" max="7" inputmode="numeric" />
+    <span asp-validation-for="HaftalikHedef" role="alert"></span>
+</div>
+
+<fieldset class="al-alan-renk">
+    <legend>Renk</legend>
+    <div class="renk-secenekleri">
+        @foreach (var renk in AliskanlikRenkleri.Liste)
+        {
+            <label class="renk-secenek" title="@renk.Ad">
+                <input type="radio" name="@Html.NameFor(m => m.Renk)" value="@renk.Kod"
+                       checked="@(Model.Renk == renk.Kod)" aria-label="@renk.Ad" />
+                <span class="@renk.Sinif"></span>
+            </label>
+        }
+    </div>
+    <span asp-validation-for="Renk" role="alert"></span>
+</fieldset>
