@@ -1,0 +1,102 @@
+@model SuTakibiViewModel
+@{
+    ViewData["Title"] = "Su takibi";
+    var durum = Model.Durum;
+    var mesaj = TempData["SuMesaj"] as string;
+    var hata = TempData["SuHata"] as string;
+
+    // Grafikte en yüksek çubuk 130 piksel; hedef çizgisi de bu ölçeğe göre
+    var enYuksek = Math.Max(durum.HedefMl, Model.SonYediGun.Max(g => g.Ml));
+    int Yukseklik(int ml) => enYuksek == 0 ? 0 : (int)Math.Round(ml * 130.0 / enYuksek);
+}
+
+@section Stiller {
+    <link rel="stylesheet" href="~/css/aliskanliklar.css" asp-append-version="true" />
+}
+
+<section class="container al-sayfa su-sayfa" data-en-fazla-bardak="@SuAyarlari.GunlukEnFazlaBardak">
+    <h1 class="el al-baslik mb-3">Alışkanlıklar</h1>
+
+    <partial name="~/Views/Aliskanliklar/_Sekmeler.cshtml" model="@("SuTakibi")" />
+
+    @if (mesaj is not null)
+    {
+        <div class="al-uyari" role="status">@mesaj</div>
+    }
+    <div class="al-uyari hata" role="alert" id="alHata" hidden="@(hata is null)">@hata</div>
+
+    <div class="su-duzen">
+        <div class="su-sol">
+            <div class="defter su-defter">
+                <span class="bant"></span>
+                <h2 class="el su-bugun" aria-live="polite">
+                    Bugün <span data-su="bugunLitre">@durum.BugunLitre</span> L / <span data-su="hedefLitre">@durum.HedefLitre</span> L
+                </h2>
+
+                <div class="el su-tebrik" data-su="tebrik" hidden="@(!durum.HedefeUlasildi)">Tebrikler, başardın!</div>
+
+                <div class="su-bardak" role="img" aria-label="Bardak yüzde @durum.Yuzde dolu" data-su="bardak">
+                    <div class="su-dolgu" style="height: @(durum.Yuzde)%" data-su="dolgu"></div>
+                    <span class="su-yuzde">%<span data-su="yuzde">@durum.Yuzde</span></span>
+                </div>
+
+                <div class="su-damlalar" data-su="damlalar" aria-hidden="true">
+                    @for (var i = 0; i < Math.Max(durum.HedefBardak, durum.Bardak); i++)
+                    {
+                        <svg width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round" class="@(i < durum.Bardak ? "dolu" : "")"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"></path></svg>
+                    }
+                </div>
+
+                <div class="su-dugmeler">
+                    <form asp-action="BardakEkle" method="post" data-su-islem>
+                        <button type="submit" class="btn btn-ana" disabled="@(durum.Bardak >= SuAyarlari.GunlukEnFazlaBardak)" data-su="ekle">
+                            <i class="bi bi-plus-lg"></i>1 bardak (@SuAyarlari.BardakMl ml)
+                        </button>
+                    </form>
+                    <form asp-action="GeriAl" method="post" data-su-islem>
+                        <button type="submit" class="btn btn-cizgili" disabled="@(durum.Bardak == 0)" data-su="geriAl">Geri al</button>
+                    </form>
+                </div>
+
+                <p class="su-seri">Hedefe ulaştığın gün serisi: <strong data-su="seri">@durum.Seri</strong></p>
+            </div>
+        </div>
+
+        <div class="su-sag">
+            <div class="al-kart">
+                <div class="su-grafik-baslik">
+                    <h2>Son 7 gün</h2>
+                    <span>koyu = hedefe ulaşıldı</span>
+                </div>
+                <div class="su-grafik" role="img" aria-label="Son 7 günde içilen su: @string.Join(", ", Model.SonYediGun.Select(g => $"{g.KisaAd} {g.Ml} ml"))">
+                    @foreach (var gun in Model.SonYediGun)
+                    {
+                        var bugunMu = gun.Tarih == Model.SonYediGun[^1].Tarih;
+                        <div class="su-cubuk-sutun" title="@gun.KisaAd: @gun.Ml ml" data-ml="@gun.Ml" data-su="@(bugunMu ? "bugunCubuk" : null)">
+                            <div class="su-cubuk @(gun.Ml >= durum.HedefMl && durum.HedefMl > 0 ? "tamam" : "")" style="height: @(Yukseklik(gun.Ml))px"></div>
+                            <small>@gun.KisaAd</small>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="al-kart">
+                <h2 class="al-kart-baslik">Günlük hedef</h2>
+                <form asp-action="Hedef" method="post" class="su-hedef-form">
+                    <label for="hedefMl" class="visually-hidden">Günlük hedef</label>
+                    <select id="hedefMl" name="hedefMl" class="girdi">
+                        @foreach (var secenek in SuAyarlari.HedefSecenekleri)
+                        {
+                            <option value="@secenek" selected="@(secenek == durum.HedefMl)">@SuAyarlari.Litre(secenek) litre</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-ana">Kaydet</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/aliskanliklar.js" asp-append-version="true"></script>
+}
